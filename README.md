@@ -164,8 +164,9 @@ Mock Fraud Detection
 Fraud Result
   ↓
 Risk Score + Explanation
+## 🏗️ Future System Architecture
 
-#$              ┌──────────────────┐
+              ┌──────────────────┐
               │     Frontend     │
               │   React + Vite   │
               └────────┬─────────┘
@@ -175,7 +176,7 @@ Risk Score + Explanation
               └────────┬─────────┘
                        ↓
               ┌──────────────────┐
-              │  ML Fraud Model │
+              │  ML Fraud Model  │
               └────────┬─────────┘
                        ↓
               ┌──────────────────┐
