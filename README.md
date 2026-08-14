@@ -164,8 +164,9 @@ Mock Fraud Detection
 Fraud Result
   ↓
 Risk Score + Explanation
-## 🏗️ Future System Architecture
+## 🚀 Future System Architecture
 
+```text
               ┌──────────────────┐
               │     Frontend     │
               │   React + Vite   │
