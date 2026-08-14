@@ -152,3 +152,15 @@ frontend/
 📄 Project Status
 Current: Frontend Development 🚧
 Next: Backend + Machine Learning + Explainable AI + Database Integration
+Current Frontend Workflow
+Login
+  ↓
+Dashboard
+  ↓
+Transaction Check
+  ↓
+Mock Fraud Detection
+  ↓
+Fraud Result
+  ↓
+Risk Score + Explanation
