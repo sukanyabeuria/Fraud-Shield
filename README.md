@@ -188,3 +188,70 @@ Risk Score + Explanation
               ┌──────────────────┐
               │     Database     │
               └──────────────────┘
+
+## 🗄️ Database Setup Summary
+
+### Tables and Relationships
+All required tables have been created with appropriate relationships,
+foreign keys, constraints, and data validation.
+
+### Indexes
+Indexes are added to frequently queried columns such as:
+- User email
+- Transaction reference
+- Transaction date
+- Transaction status
+- Risk level
+- Fraud prediction
+- Fraud probability
+- Merchant
+- Created timestamp
+
+### Seed Data
+Realistic sample data is included for development, testing, and dashboard visualization.
+
+## 🔗 Backend Compatibility
+
+The database is designed to integrate with a backend REST API.
+
+Supported endpoints include:
+
+POST /api/auth/login
+POST /api/transactions
+GET /api/transactions
+GET /api/transactions/:id
+POST /api/fraud/predict
+GET /api/fraud/results/:id
+GET /api/analytics
+GET /api/risk-analysis
+
+## 🔐 Security
+
+Security best practices include:
+
+- Password hashing
+- Foreign keys and database constraints
+- Parameterized queries to prevent SQL injection
+- Environment variables for database credentials
+- Controlled database access
+
+## 📁 Database File Structure
+
+database/
+│
+├── README.md
+├── schema.sql
+├── enums.sql
+├── tables.sql
+├── indexes.sql
+├── views.sql
+├── seed.sql
+└── queries.sql
+
+## 🚀 Next Steps
+
+- Connect the PostgreSQL database to the backend
+- Implement analytics views and queries
+- Implement transaction search and filtering
+- Connect fraud prediction API with the ML model
+- Connect frontend dashboard with backend APIs
