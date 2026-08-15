@@ -76,6 +76,7 @@ React Fraud Result UI
 The existing frontend currently uses mock prediction logic.
 The mock logic will be replaced with the real backend API while preserving the existing frontend UI.
 ```
+```text
 🏗️ Frontend Architecture
 The frontend follows a component-based React architecture.
 frontend/
@@ -112,7 +113,7 @@ frontend/
 ├── package.json
 └── README.md
 Update the component names above according to the actual frontend folder structure.
-
+```
 ----
 ⚙️ Technology Stack
 Technology
