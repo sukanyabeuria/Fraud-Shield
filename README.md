@@ -111,6 +111,75 @@ Displays:
 | GitHub | Team collaboration |
 
 ---
+---
+
+## 🗄️ Database
+
+The Fraud-Shield system uses **PostgreSQL** to securely store and manage fraud-related data.
+
+### 📊 Database Features
+
+- User account and authentication information
+- Transaction details and history
+- Fraud prediction results
+- Risk scores and risk levels
+- Risk indicators
+- Fraud explanations
+- Model version information
+- Analytics data
+- Transaction timestamps and status
+
+### 🔗 Database Relationships
+
+The database contains related tables for:
+
+- Users
+- Transactions
+- Fraud Predictions
+- Risk Indicators
+- Explanations
+- Model Versions
+- Audit Logs
+
+Foreign keys and constraints are used to maintain data consistency.
+
+### ⚡ Database Optimization
+
+Indexes are created for frequently searched fields such as:
+
+- User email
+- Transaction reference
+- Transaction date
+- Transaction status
+- Risk level
+- Fraud probability
+- Merchant
+- Created timestamp
+
+### 🔐 Database Security
+
+- Passwords are stored using secure hashing
+- Foreign key constraints are used
+- Parameterized queries help prevent SQL injection
+- Database credentials are stored using environment variables
+- Sensitive information is not hardcoded
+
+### 🔌 Backend Integration
+
+The database is designed to connect with the backend REST API.
+
+Planned API operations include:
+
+- User authentication
+- Transaction creation
+- Transaction history
+- Fraud prediction
+- Fraud result retrieval
+- Risk analysis
+- Dashboard analytics
+
+Currently, the frontend is being developed using mock data.  
+The PostgreSQL database will be connected during backend integration.
 
 ## 📁 Project Structure
 
@@ -237,70 +306,3 @@ Security best practices include:
 
 ---
 
-## 🗄️ Database
-
-The Fraud-Shield system uses **PostgreSQL** to securely store and manage fraud-related data.
-
-### 📊 Database Features
-
-- User account and authentication information
-- Transaction details and history
-- Fraud prediction results
-- Risk scores and risk levels
-- Risk indicators
-- Fraud explanations
-- Model version information
-- Analytics data
-- Transaction timestamps and status
-
-### 🔗 Database Relationships
-
-The database contains related tables for:
-
-- Users
-- Transactions
-- Fraud Predictions
-- Risk Indicators
-- Explanations
-- Model Versions
-- Audit Logs
-
-Foreign keys and constraints are used to maintain data consistency.
-
-### ⚡ Database Optimization
-
-Indexes are created for frequently searched fields such as:
-
-- User email
-- Transaction reference
-- Transaction date
-- Transaction status
-- Risk level
-- Fraud probability
-- Merchant
-- Created timestamp
-
-### 🔐 Database Security
-
-- Passwords are stored using secure hashing
-- Foreign key constraints are used
-- Parameterized queries help prevent SQL injection
-- Database credentials are stored using environment variables
-- Sensitive information is not hardcoded
-
-### 🔌 Backend Integration
-
-The database is designed to connect with the backend REST API.
-
-Planned API operations include:
-
-- User authentication
-- Transaction creation
-- Transaction history
-- Fraud prediction
-- Fraud result retrieval
-- Risk analysis
-- Dashboard analytics
-
-Currently, the frontend is being developed using mock data.  
-The PostgreSQL database will be connected during backend integration.
