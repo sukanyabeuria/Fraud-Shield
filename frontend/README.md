@@ -185,7 +185,7 @@ Whether device is newly detected
 The entered information is submitted to the backend for fraud analysis.
 ----
 🔍 Fraud Detection Flow:
-
+```text
 The frontend follows the following process:
 User enters transaction
         ↓
@@ -207,6 +207,7 @@ FraudCheckResponse
         ↓
 Frontend displays result
 ----
+```
 🚨 Fraud Result:
 
 After analyzing a transaction, the frontend displays the fraud detection result.
