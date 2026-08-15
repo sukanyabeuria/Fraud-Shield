@@ -221,6 +221,7 @@ Risk Factors
 Triggered Rules
 Model Version
 Evaluation Time
+```text
 Example:
 {
   "transaction_id": "TEST-001",
@@ -230,6 +231,7 @@ Example:
   "confidence": 0.9964,
   "recommended_action": "Block transaction and initiate manual review"
 }
+```
 ----
 📊 Risk Visualization:
 
