@@ -184,77 +184,68 @@ The PostgreSQL database will be connected during backend integration.
 ## 📁 Project Structure
 
 ```text
-frontend/
+Fraud-Shield/
 │
-├── src/
-│   ├── components/
-│   │   ├── Sidebar.jsx
-│   │   ├── Navbar.jsx
-│   │   ├── StatCard.jsx
-│   │   ├── TransactionTable.jsx
-│   │   ├── RiskBadge.jsx
-│   │   ├── RiskScore.jsx
-│   │   ├── ChartCard.jsx
-│   │   ├── Button.jsx
-│   │   └── Input.jsx
-│   │
-│   ├── pages/
-│   │   ├── Login.jsx
-│   │   ├── Signup.jsx
-│   │   ├── Dashboard.jsx
-│   │   ├── TransactionCheck.jsx
-│   │   ├── FraudResult.jsx
-│   │   ├── TransactionHistory.jsx
-│   │   ├── Analytics.jsx
-│   │   └── Profile.jsx
-│   │
-│   ├── data/
-│   │   └── mockData.js
-│   │
-│   ├── App.jsx
-│   ├── main.jsx
-│   └── index.css
+├── backend/
+│   └── README.md
 │
+├── database/
+│   ├── Audit_Logs.sql
+│   ├── Explanations.sql
+│   ├── fraud_result.sql
+│   ├── modelversions.sql
+│   ├── risk_indicators.sql
+│   ├── Schema.sql
+│   ├── Transaction_History.sql
+│   ├── transactions.sql
+│   └── README.md
+│
+├── docs/
+│   └── README.md
+│
+├── explainable-ai/
+│   └── README.md
+│
+├── frontend/
+│   └── fraud-shield-react-frontend/
+│       ├── src/
+│       │   ├── components/
+│       │   │   ├── Sidebar.jsx
+│       │   │   ├── Navbar.jsx
+│       │   │   ├── StatCard.jsx
+│       │   │   ├── TransactionTable.jsx
+│       │   │   ├── RiskBadge.jsx
+│       │   │   ├── RiskScore.jsx
+│       │   │   ├── ChartCard.jsx
+│       │   │   ├── Button.jsx
+│       │   │   └── Input.jsx
+│       │   │
+│       │   ├── pages/
+│       │   │   ├── Login.jsx
+│       │   │   ├── Signup.jsx
+│       │   │   ├── Dashboard.jsx
+│       │   │   ├── TransactionCheck.jsx
+│       │   │   ├── FraudResult.jsx
+│       │   │   ├── TransactionHistory.jsx
+│       │   │   ├── Analytics.jsx
+│       │   │   └── Profile.jsx
+│       │   │
+│       │   ├── data/
+│       │   │   └── mockData.js
+│       │   │
+│       │   ├── App.jsx
+│       │   ├── main.jsx
+│       │   └── index.css
+│       │
+│       ├── index.html
+│       ├── package.json
+│       ├── package-lock.json
+│       ├── tsconfig.json
+│       └── vite.config.ts
+│
+├── MI/
+│
+├── .gitignore
+├── LICENSE
 ├── package.json
 └── README.md
-
-📄 Project Status
-Current: Frontend Development 🚧
-Next: Backend + Machine Learning + Explainable AI + Database Integration
-Current Frontend Workflow
-Login
-  ↓
-Dashboard
-  ↓
-Transaction Check
-  ↓
-Mock Fraud Detection
-  ↓
-Fraud Result
-  ↓
-Risk Score + Explanation
-## 🚀 Future System Architecture
-
-```text
-              ┌──────────────────┐
-              │     Frontend     │
-              │   React + Vite   │
-              └────────┬─────────┘
-                       ↓
-              ┌──────────────────┐
-              │   Backend API    │
-              └────────┬─────────┘
-                       ↓
-              ┌──────────────────┐
-              │  ML Fraud Model  │
-              └────────┬─────────┘
-                       ↓
-              ┌──────────────────┐
-              │ Explainable AI   │
-              │      (XAI)       │
-              └────────┬─────────┘
-                       ↓
-              ┌──────────────────┐
-              │     Database     │
-              └──────────────────┘
-
