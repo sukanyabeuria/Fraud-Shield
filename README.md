@@ -1,193 +1,465 @@
 # 🛡️ Fraud-Shield
 
-A modern frontend for a real-time financial fraud detection system powered by Machine Learning and Explainable AI.
+A full-stack **AI-powered financial fraud detection and explainability platform** designed to identify suspicious transactions in real time and explain the key factors behind each fraud decision.
 
-> **Current Stage:** Frontend Development  
-> Backend, Database, Machine Learning and Explainable AI integration will be added later.
+> **Current Stage:** Full-Stack Integration — Frontend + Backend + Database + Machine Learning + Explainable AI
 
 ---
 
 ## 📌 About the Project
 
-Fraud-Shield is designed to help detect suspicious financial transactions in real time.
+**Fraud-Shield** is designed to detect potentially fraudulent financial transactions using a combination of:
 
-The final system will use:
+* Machine Learning
+* Explainable AI (XAI)
+* Rule-based fraud detection
+* Hybrid risk scoring
+* REST APIs
+* PostgreSQL database
+* Interactive monitoring dashboard
 
-- Machine Learning for fraud detection
-- Explainable AI (XAI) to explain why a transaction is considered risky
-- Backend APIs for communication
-- Database for storing transaction information
-- A modern web dashboard for monitoring fraud
+The system evaluates transaction characteristics such as transaction amount, international transfer status, recipient history, device information and transaction patterns to generate a fraud risk assessment.
 
-Currently, we are developing the **frontend interface using mock data**.
-
----
-
-## 🚀 Current Frontend Features
-
-### 🔐 Authentication
-- Login page
-- Sign Up page
-- Password visibility toggle
-- Frontend form validation
-- Remember me option
-
-### 📊 Dashboard
-- Total transactions
-- Safe transactions
-- Suspicious transactions
-- Fraud detected
-- Overall risk score
-- Recent transactions
-- Fraud statistics
-- Risk distribution
-- Transaction activity
-
-### 💳 Transaction Check
-Users can enter transaction information such as:
-
-- Transaction ID
-- Transaction amount
-- Transaction type
-- Account age
-- Location
-- Device type
-- Transaction time
-- Transaction frequency
-- Previous transaction amount
-
-Currently, the result is generated using **mock logic**.
-
-### 🚨 Fraud Result
-Displays:
-
-- Fraud / Genuine result
-- Risk score
-- Risk level
-- Risk indicators
-- Transaction summary
-- Explanation of suspicious factors
-
-### 📜 Transaction History
-- Search transactions
-- Filter transactions
-- Risk level
-- Transaction status
-- Transaction amount
-- Transaction date
-- Risk score
-
-### 📈 Risk Analytics
-- Fraud percentage
-- Average risk score
-- High-risk transactions
-- Fraud trends
-- Risk distribution
-- Transaction volume
-- Fraud vs Genuine analysis
-
-### 👤 Profile & Settings
-- User information
-- Profile section
-- Password settings
-- Notification settings
-- Security settings
-- Theme settings
-- Logout
+The platform not only predicts whether a transaction is fraudulent but also provides **explanations for the prediction**, helping users and analysts understand why a transaction was considered risky.
 
 ---
 
-## 🛠️ Tech Stack
+# 🚀 Key Features
 
-| Technology | Purpose |
-|---|---|
-| React.js | Frontend framework |
-| Vite | Development/build tool |
-| JavaScript | Programming language |
-| Tailwind CSS | UI styling |
-| React Router | Page navigation |
-| Recharts | Charts and analytics |
-| Git | Version control |
-| GitHub | Team collaboration |
+## 🔐 Authentication
+
+* Login and Sign Up interface
+* Password visibility toggle
+* Frontend form validation
+* Remember me option
+* User profile management
 
 ---
+
+## 📊 Fraud Detection Dashboard
+
+The dashboard provides an overview of transaction activity and fraud risk.
+
+Features include:
+
+* Total transactions
+* Safe transactions
+* Suspicious transactions
+* Fraud detected
+* Overall risk score
+* Recent transactions
+* Fraud statistics
+* Risk distribution
+* Transaction activity
+* High-risk transaction monitoring
+
 ---
 
-## 🗄️ Database
+# 💳 Real-Time Transaction Analysis
 
-The Fraud-Shield system uses **PostgreSQL** to securely store and manage fraud-related data.
+Users can submit transaction information for fraud evaluation.
 
-### 📊 Database Features
+### Transaction Inputs
 
-- User account and authentication information
-- Transaction details and history
-- Fraud prediction results
-- Risk scores and risk levels
-- Risk indicators
-- Fraud explanations
-- Model version information
-- Analytics data
-- Transaction timestamps and status
+* Transaction ID
+* Transaction amount
+* Currency
+* Transaction type
+* Merchant category
+* Location
+* IP address
+* Device type
+* International transfer status
+* New recipient status
+* Transaction frequency
+* New device status
 
-### 🔗 Database Relationships
+The backend processes the transaction and generates:
 
-The database contains related tables for:
+* Risk score
+* Risk level
+* Fraud/Genuine verdict
+* Prediction confidence
+* Risk factors
+* Triggered fraud rules
+* Recommended action
+* Model version
+* Evaluation timestamp
 
-- Users
-- Transactions
-- Fraud Predictions
-- Risk Indicators
-- Explanations
-- Model Versions
-- Audit Logs
+### Example Result
 
-Foreign keys and constraints are used to maintain data consistency.
+```text
+Risk Score: 83
+Risk Level: Critical
+Verdict: Fraud
+Confidence: 99.63%
 
-### ⚡ Database Optimization
+Recommended Action:
+Block transaction and initiate manual review
+```
 
-Indexes are created for frequently searched fields such as:
+---
 
-- User email
-- Transaction reference
-- Transaction date
-- Transaction status
-- Risk level
-- Fraud probability
-- Merchant
-- Created timestamp
+# 🤖 Machine Learning Fraud Detection
 
-### 🔐 Database Security
+Fraud-Shield uses an **XGBoost-based machine learning model** for transaction risk prediction.
 
-- Passwords are stored using secure hashing
-- Foreign key constraints are used
-- Parameterized queries help prevent SQL injection
-- Database credentials are stored using environment variables
-- Sensitive information is not hardcoded
+The ML pipeline contains:
 
-### 🔌 Backend Integration
+* Feature engineering
+* Feature transformation
+* XGBoost model
+* Model loading and prediction
+* Model metadata
+* Fraud probability estimation
 
-The database is designed to connect with the backend REST API.
+### ML Components
 
-Planned API operations include:
+```text
+backend/ml/
+│
+├── feature_engineering.py
+├── model_loader.py
+├── predictor.py
+├── train_model.py
+│
+└── artifacts/
+    ├── xgboost_model.pkl
+    ├── feature_engineer.pkl
+    ├── shap_explainer.pkl
+    └── model_metadata.json
+```
 
-- User authentication
-- Transaction creation
-- Transaction history
-- Fraud prediction
-- Fraud result retrieval
-- Risk analysis
-- Dashboard analytics
+The trained model produces a fraud prediction that is combined with rule-based signals to generate the final risk assessment.
 
-Currently, the frontend is being developed using mock data.  
-The PostgreSQL database will be connected during backend integration.
+---
 
-## 📁 Project Structure
+# 🔍 Explainable AI (XAI)
+
+Fraud-Shield uses **SHAP (SHapley Additive exPlanations)** to explain individual fraud predictions.
+
+Instead of only displaying:
+
+> "Transaction is fraudulent"
+
+the system identifies the features that contributed to the prediction.
+
+### Example Risk Factors
+
+```text
+is_international     → increases risk
+is_new_recipient     → increases risk
+previous_amount      → increases risk
+is_new_device        → increases risk
+amount               → increases risk
+```
+
+Each explanation contains:
+
+* Feature name
+* Feature impact
+* Risk direction
+* Human-readable explanation
+
+This makes the ML prediction more transparent and easier for fraud analysts to understand.
+
+---
+
+# ⚙️ Hybrid Fraud Detection Engine
+
+Fraud-Shield combines **Machine Learning and deterministic fraud rules**.
+
+```text
+Transaction
+     │
+     ▼
+Feature Engineering
+     │
+     ├───────────────┐
+     ▼               ▼
+XGBoost Model    Rule Engine
+     │               │
+     │               ├── NEW_RECIPIENT
+     │               ├── INTERNATIONAL_TRANSFER
+     │               └── NEW_DEVICE
+     │
+     └───────┬───────┘
+             ▼
+      Hybrid Risk Scoring
+             │
+             ▼
+      Final Fraud Decision
+             │
+             ▼
+      SHAP Explanation
+             │
+             ▼
+        API Response
+```
+
+### Example Triggered Rules
+
+* `NEW_RECIPIENT`
+* `INTERNATIONAL_TRANSFER`
+* `NEW_DEVICE`
+
+The hybrid approach allows the system to combine **learned fraud patterns** with **business-defined fraud rules**.
+
+---
+
+# 🧠 Explainability Output
+
+For every evaluated transaction, Fraud-Shield can store and return feature-level explanations.
+
+Example:
+
+```json
+{
+  "feature": "is_new_recipient",
+  "impact": 2.02,
+  "direction": "increases_risk",
+  "explanation": "Recipient has not been previously used. This increases the risk of fraud."
+}
+```
+
+This provides transparency into the decision-making process of the fraud detection system.
+
+---
+
+# 🔌 Backend API
+
+Fraud-Shield uses a **FastAPI-based REST backend**.
+
+### Main Transaction Analysis Endpoint
+
+```text
+POST /api/v1/transactions/analyze
+```
+
+The endpoint accepts transaction information and returns the fraud evaluation.
+
+### Response includes
+
+```text
+transaction_id
+risk_score
+risk_level
+verdict
+confidence
+recommended_action
+risk_factors
+triggered_rules
+model_version
+evaluated_at
+```
+
+---
+
+# 🗄️ Database
+
+Fraud-Shield uses **PostgreSQL** for persistent storage of fraud-related information.
+
+The backend uses **SQLAlchemy ORM** for database interaction.
+
+### Stored Information
+
+* User accounts
+* Transaction details
+* Fraud evaluations
+* Risk scores
+* Risk levels
+* Fraud verdicts
+* Feature attributions
+* Triggered rules
+* Model version information
+* Evaluation timestamps
+
+### Database Relationships
+
+```text
+Users
+  │
+  └── Transactions
+          │
+          └── Fraud Evaluations
+                  │
+                  └── Feature Attributions
+```
+
+Foreign keys and relationships are used to maintain data consistency between entities.
+
+---
+
+# 💾 Database Persistence
+
+Fraud evaluation results are persisted after transaction analysis.
+
+For example:
+
+```text
+Transaction
+TXN-DB-001
+        │
+        ├── Risk Score: 83
+        ├── Risk Level: Critical
+        └── Verdict: Fraud
+                │
+                └── Feature Attributions
+                     ├── is_international
+                     ├── is_new_recipient
+                     ├── previous_amount
+                     ├── is_new_device
+                     └── amount
+```
+
+This allows historical fraud analysis and future dashboard analytics.
+
+---
+
+# 🛡️ Security
+
+The system follows basic application security practices including:
+
+* Password hashing
+* Environment-based configuration
+* Database credentials stored using environment variables
+* Parameterized database queries
+* Foreign key constraints
+* Sensitive information excluded from source control
+* `.env` files excluded through `.gitignore`
+
+---
+
+# 📊 Fraud Result
+
+The Fraud Result interface displays the complete evaluation of a transaction.
+
+It includes:
+
+* Fraud / Genuine verdict
+* Risk score
+* Risk level
+* Prediction confidence
+* Risk indicators
+* Triggered rules
+* Transaction summary
+* Explainable AI factors
+* Recommended action
+
+---
+
+# 📜 Transaction History
+
+Users can view previously evaluated transactions.
+
+Features include:
+
+* Search transactions
+* Filter transactions
+* Transaction status
+* Risk level
+* Transaction amount
+* Transaction date
+* Risk score
+* Fraud verdict
+
+---
+
+# 📈 Risk Analytics
+
+The analytics dashboard provides insights into transaction risk.
+
+Features include:
+
+* Fraud percentage
+* Average risk score
+* High-risk transactions
+* Fraud trends
+* Risk distribution
+* Transaction volume
+* Fraud vs Genuine analysis
+
+---
+
+# 👤 Profile & Settings
+
+* User information
+* Profile management
+* Password settings
+* Notification settings
+* Security settings
+* Theme settings
+* Logout
+
+---
+
+# 🛠️ Tech Stack
+
+| Layer            | Technology            |
+| ---------------- | --------------------- |
+| Frontend         | React.js              |
+| Build Tool       | Vite                  |
+| Language         | JavaScript            |
+| Styling          | Tailwind CSS          |
+| Routing          | React Router          |
+| Charts           | Recharts              |
+| Backend          | Python                |
+| API Framework    | FastAPI               |
+| ORM              | SQLAlchemy            |
+| Database         | PostgreSQL            |
+| Machine Learning | XGBoost               |
+| Explainable AI   | SHAP                  |
+| ML Processing    | Python / scikit-learn |
+| Version Control  | Git                   |
+| Collaboration    | GitHub                |
+
+---
+
+# 📁 Project Structure
 
 ```text
 Fraud-Shield/
 │
 ├── backend/
-│   └── README.md
+│   │
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── v1/
+│   │   │       ├── __init__.py
+│   │   │       └── router.py
+│   │   │
+│   │   ├── core/
+│   │   │   ├── config.py
+│   │   │   └── database.py
+│   │   │
+│   │   ├── models/
+│   │   │   ├── models.py
+│   │   │   └── transaction.py
+│   │   │
+│   │   ├── schemas/
+│   │   │   └── transaction.py
+│   │   │
+│   │   ├── services/
+│   │   │   ├── ml_service.py
+│   │   │   └── rule_engine.py
+│   │   │
+│   │   ├── utils/
+│   │   │   └── hybrid_scoring.py
+│   │   │
+│   │   ├── main.py
+│   │   └── alembic.ini
+│   │
+│   └── ml/
+│       ├── feature_engineering.py
+│       ├── model_loader.py
+│       ├── predictor.py
+│       ├── train_model.py
+│       │
+│       └── artifacts/
+│           ├── feature_engineer.pkl
+│           ├── model_metadata.json
+│           ├── shap_explainer.pkl
+│           └── xgboost_model.pkl
 │
 ├── database/
 │   ├── Audit_Logs.sql
@@ -210,29 +482,8 @@ Fraud-Shield/
 │   └── fraud-shield-react-frontend/
 │       ├── src/
 │       │   ├── components/
-│       │   │   ├── Sidebar.jsx
-│       │   │   ├── Navbar.jsx
-│       │   │   ├── StatCard.jsx
-│       │   │   ├── TransactionTable.jsx
-│       │   │   ├── RiskBadge.jsx
-│       │   │   ├── RiskScore.jsx
-│       │   │   ├── ChartCard.jsx
-│       │   │   ├── Button.jsx
-│       │   │   └── Input.jsx
-│       │   │
 │       │   ├── pages/
-│       │   │   ├── Login.jsx
-│       │   │   ├── Signup.jsx
-│       │   │   ├── Dashboard.jsx
-│       │   │   ├── TransactionCheck.jsx
-│       │   │   ├── FraudResult.jsx
-│       │   │   ├── TransactionHistory.jsx
-│       │   │   ├── Analytics.jsx
-│       │   │   └── Profile.jsx
-│       │   │
 │       │   ├── data/
-│       │   │   └── mockData.js
-│       │   │
 │       │   ├── App.jsx
 │       │   ├── main.jsx
 │       │   └── index.css
@@ -240,12 +491,115 @@ Fraud-Shield/
 │       ├── index.html
 │       ├── package.json
 │       ├── package-lock.json
-│       ├── tsconfig.json
 │       └── vite.config.ts
-│
-├── MI/
 │
 ├── .gitignore
 ├── LICENSE
-├── package.json
 └── README.md
+```
+
+---
+
+# 🔄 End-to-End System Flow
+
+```text
+User
+ │
+ ▼
+React Frontend
+ │
+ │ Transaction Data
+ ▼
+FastAPI Backend
+ │
+ ├───────────────┐
+ ▼               ▼
+ML Engine      Rule Engine
+ │               │
+ ▼               ▼
+XGBoost       Business Rules
+ │               │
+ └───────┬───────┘
+         ▼
+   Hybrid Scoring
+         │
+         ▼
+   Fraud Evaluation
+         │
+    ┌────┴─────┐
+    ▼          ▼
+   SHAP     PostgreSQL
+ Explanation  Storage
+    │          │
+    └────┬─────┘
+         ▼
+   Fraud Result
+         │
+         ▼
+   React Dashboard
+```
+
+---
+
+# 🎯 Project Objective
+
+The primary objective of Fraud-Shield is to create a fraud detection platform that is:
+
+* **Accurate** — uses machine learning to identify complex fraud patterns
+* **Explainable** — provides understandable reasons behind predictions
+* **Practical** — combines ML predictions with business fraud rules
+* **Scalable** — uses modular backend and service architecture
+* **Data-driven** — stores transaction and fraud evaluation history
+* **User-friendly** — presents fraud insights through an interactive dashboard
+
+---
+
+# 🚧 Future Enhancements
+
+Potential future improvements include:
+
+* Real-time transaction streaming
+* Advanced anomaly detection
+* Model retraining pipeline
+* Continuous model monitoring
+* Advanced user authentication
+* Role-based access control
+* Production deployment
+* Cloud database integration
+* Automated model performance monitoring
+* Advanced fraud analytics
+* Alert and notification system
+
+---
+
+# 👥 Team Collaboration
+
+Fraud-Shield is developed collaboratively using Git and GitHub.
+
+The project follows a modular architecture where different team members can work independently on:
+
+* Frontend
+* Backend
+* Database
+* Machine Learning
+* Explainable AI
+* Documentation
+
+---
+
+## 🏁 Project Status
+
+Fraud-Shield has progressed from a frontend prototype to an integrated fraud detection platform with:
+
+* ✅ React frontend
+* ✅ FastAPI backend
+* ✅ PostgreSQL database integration
+* ✅ XGBoost fraud detection
+* ✅ SHAP-based Explainable AI
+* ✅ Rule-based fraud detection
+* ✅ Hybrid risk scoring
+* ✅ Fraud evaluation persistence
+* ✅ Feature-level risk explanations
+* ✅ Transaction analysis API
+
+The system is currently being prepared for further integration, testing and deployment.
