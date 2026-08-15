@@ -184,7 +184,8 @@ New Device
 Whether device is newly detected
 The entered information is submitted to the backend for fraud analysis.
 ----
-🔍 Fraud Detection Flow
+🔍 Fraud Detection Flow:
+
 The frontend follows the following process:
 User enters transaction
         ↓
@@ -206,7 +207,8 @@ FraudCheckResponse
         ↓
 Frontend displays result
 ----
-🚨 Fraud Result
+🚨 Fraud Result:
+
 After analyzing a transaction, the frontend displays the fraud detection result.
 The result can contain:
 Risk Score
@@ -228,7 +230,8 @@ Example:
   "recommended_action": "Block transaction and initiate manual review"
 }
 ----
-📊 Risk Visualization
+📊 Risk Visualization:
+
 The frontend visually represents the calculated risk score.
 Risk levels include:
 Low
@@ -240,7 +243,8 @@ Safe
 Fraud
 This allows users to quickly understand the severity of a transaction.
 ---
-🧠 Explainable AI
+🧠 Explainable AI:
+
 Fraud-Shield does not only display whether a transaction is fraudulent.
 The frontend also displays the factors that contributed to the prediction.
 Example:
@@ -257,7 +261,8 @@ is_new_device
 Increases Risk
 SHAP-based explanations from the backend are presented in the frontend so that users can understand why a transaction was considered risky.
 ---
-🚨 Triggered Business Rules
+🚨 Triggered Business Rules:
+
 The frontend also displays business rules triggered during transaction analysis.
 Example:
 NEW_RECIPIENT
@@ -270,7 +275,8 @@ NEW_DEVICE
 Impact: +10
 This provides additional context alongside the machine learning prediction.
 ---
-🎯 Recommended Action
+🎯 Recommended Action:
+
 Based on the final risk assessment, the frontend displays a recommended action.
 Examples:
 Approve transaction
@@ -286,7 +292,8 @@ POST http://127.0.0.1:8000/api/v1/transactions/analyze
 Health check:
 GET http://127.0.0.1:8000/api/v1/health
 ---
-🔐 Environment Configuration
+🔐 Environment Configuration:
+
 API configuration should be stored using environment variables rather than hardcoded values.
 Example:
 VITE_API_BASE_URL=http://127.0.0.1:8000
@@ -294,7 +301,8 @@ The frontend can then use:
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 Do not commit sensitive credentials, API keys, passwords, or other secrets to GitHub.
 ---
-▶️ Running the Frontend
+▶️ Running the Frontend:
+
 Navigate to the frontend directory:
 cd frontend
 Install dependencies:
@@ -327,7 +335,8 @@ SHAP Explainability
 Hybrid Risk Score
 The result is returned to the frontend and displayed to the user.
 ---
-🧪 Frontend Testing
+🧪 Frontend Testing:
+
 The frontend can be tested using different transaction scenarios.
 High-Risk Transaction
 Example conditions:
@@ -350,7 +359,9 @@ Expected result:
 Risk Level: Low
 Verdict: Safe
 ---
-🛠️ Development Workflow
+🛠️ Development Workflow:
+---
+```text
 The frontend development workflow is:
 Design UI
    ↓
@@ -367,8 +378,10 @@ Handle API Response
 Display Fraud Analysis
    ↓
 Test High/Low Risk Transactions
+```
 ----------
-📌 Current Status
+📌 Current Status:
+
 Completed
 React frontend
 Dashboard UI
