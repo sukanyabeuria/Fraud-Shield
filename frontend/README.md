@@ -115,7 +115,8 @@ frontend/
 Update the component names above according to the actual frontend folder structure.
 ```
 ----
-⚙️ Technology Stack
+⚙️ Technology Stack:
+
 Technology
 Purpose
 React.js
@@ -137,9 +138,11 @@ Transaction data storage
 Vite
 Frontend development and build tool
 -----
-🖥️ Main Frontend Features
+🖥️ Main Frontend Features:
+
 ----
-📊 Dashboard
+📊 Dashboard:
+
 The dashboard provides an overview of the fraud detection system.
 It is designed to provide users with quick access to:
 Transaction analysis
@@ -148,7 +151,9 @@ Risk information
 System information
 Transaction-related data
 ----
-💳 Transaction Check
+💳 Transaction Check:
+
+
 The Transaction Check interface allows users to enter transaction information.
 The transaction data includes:
 Field
