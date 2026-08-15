@@ -267,6 +267,7 @@ SHAP-based explanations from the backend are presented in the frontend so that u
 🚨 Triggered Business Rules:
 
 The frontend also displays business rules triggered during transaction analysis.
+```text
 Example:
 NEW_RECIPIENT
 Impact: +18
@@ -277,6 +278,7 @@ Impact: +15
 NEW_DEVICE
 Impact: +10
 This provides additional context alongside the machine learning prediction.
+```
 ---
 🎯 Recommended Action:
 
@@ -286,9 +288,11 @@ Approve transaction
 Review transaction
 Block transaction and initiate manual review
 This allows analysts or users to understand what action should be considered for the transaction.
-🔌 API Configuration
+---
+🔌 API Configuration:
 The frontend communicates with the FastAPI backend.
 When running locally, the backend normally runs at:
+```text
 http://127.0.0.1:8000
 The transaction analysis endpoint is:
 POST http://127.0.0.1:8000/api/v1/transactions/analyze
@@ -303,6 +307,7 @@ VITE_API_BASE_URL=http://127.0.0.1:8000
 The frontend can then use:
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 Do not commit sensitive credentials, API keys, passwords, or other secrets to GitHub.
+```
 ---
 ▶️ Running the Frontend:
 
@@ -313,7 +318,9 @@ npm install
 Start the development server:
 npm run dev
 The frontend will normally be available at the URL shown by Vite, commonly:
+```text
 http://localhost:5173
+```
 ---
 🔗 Running Frontend + Backend
 The complete Fraud-Shield system can be run as:
