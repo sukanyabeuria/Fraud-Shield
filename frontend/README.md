@@ -53,7 +53,7 @@ The frontend is designed to communicate with the Fraud-Shield FastAPI backend.
 
 The primary API endpoint is:
 
-
+```text
 POST /api/v1/transactions/analyze
 The integration flow is:
 React Frontend
@@ -75,6 +75,7 @@ FraudCheckResponse
 React Fraud Result UI
 The existing frontend currently uses mock prediction logic.
 The mock logic will be replaced with the real backend API while preserving the existing frontend UI.
+```
 🏗️ Frontend Architecture
 The frontend follows a component-based React architecture.
 frontend/
@@ -111,6 +112,8 @@ frontend/
 ├── package.json
 └── README.md
 Update the component names above according to the actual frontend folder structure.
+
+----
 ⚙️ Technology Stack
 Technology
 Purpose
@@ -132,7 +135,9 @@ PostgreSQL
 Transaction data storage
 Vite
 Frontend development and build tool
+-----
 🖥️ Main Frontend Features
+----
 📊 Dashboard
 The dashboard provides an overview of the fraud detection system.
 It is designed to provide users with quick access to:
@@ -141,6 +146,7 @@ Fraud detection results
 Risk information
 System information
 Transaction-related data
+----
 💳 Transaction Check
 The Transaction Check interface allows users to enter transaction information.
 The transaction data includes:
@@ -171,6 +177,7 @@ Number/frequency of transactions
 New Device
 Whether device is newly detected
 The entered information is submitted to the backend for fraud analysis.
+----
 🔍 Fraud Detection Flow
 The frontend follows the following process:
 User enters transaction
@@ -192,6 +199,7 @@ Hybrid risk scoring
 FraudCheckResponse
         ↓
 Frontend displays result
+----
 🚨 Fraud Result
 After analyzing a transaction, the frontend displays the fraud detection result.
 The result can contain:
@@ -213,6 +221,7 @@ Example:
   "confidence": 0.9964,
   "recommended_action": "Block transaction and initiate manual review"
 }
+----
 📊 Risk Visualization
 The frontend visually represents the calculated risk score.
 Risk levels include:
@@ -224,6 +233,7 @@ The final verdict can be:
 Safe
 Fraud
 This allows users to quickly understand the severity of a transaction.
+---
 🧠 Explainable AI
 Fraud-Shield does not only display whether a transaction is fraudulent.
 The frontend also displays the factors that contributed to the prediction.
@@ -240,6 +250,7 @@ is_new_device
         ↓
 Increases Risk
 SHAP-based explanations from the backend are presented in the frontend so that users can understand why a transaction was considered risky.
+---
 🚨 Triggered Business Rules
 The frontend also displays business rules triggered during transaction analysis.
 Example:
@@ -252,6 +263,7 @@ Impact: +15
 NEW_DEVICE
 Impact: +10
 This provides additional context alongside the machine learning prediction.
+---
 🎯 Recommended Action
 Based on the final risk assessment, the frontend displays a recommended action.
 Examples:
@@ -267,6 +279,7 @@ The transaction analysis endpoint is:
 POST http://127.0.0.1:8000/api/v1/transactions/analyze
 Health check:
 GET http://127.0.0.1:8000/api/v1/health
+---
 🔐 Environment Configuration
 API configuration should be stored using environment variables rather than hardcoded values.
 Example:
@@ -274,6 +287,7 @@ VITE_API_BASE_URL=http://127.0.0.1:8000
 The frontend can then use:
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 Do not commit sensitive credentials, API keys, passwords, or other secrets to GitHub.
+---
 ▶️ Running the Frontend
 Navigate to the frontend directory:
 cd frontend
@@ -283,6 +297,7 @@ Start the development server:
 npm run dev
 The frontend will normally be available at the URL shown by Vite, commonly:
 http://localhost:5173
+---
 🔗 Running Frontend + Backend
 The complete Fraud-Shield system can be run as:
 React Frontend
@@ -305,6 +320,7 @@ SHAP Explainability
         ↓
 Hybrid Risk Score
 The result is returned to the frontend and displayed to the user.
+---
 🧪 Frontend Testing
 The frontend can be tested using different transaction scenarios.
 High-Risk Transaction
@@ -327,6 +343,7 @@ Domestic transaction
 Expected result:
 Risk Level: Low
 Verdict: Safe
+---
 🛠️ Development Workflow
 The frontend development workflow is:
 Design UI
@@ -344,6 +361,7 @@ Handle API Response
 Display Fraud Analysis
    ↓
 Test High/Low Risk Transactions
+----------
 📌 Current Status
 Completed
 React frontend
