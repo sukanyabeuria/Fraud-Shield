@@ -250,6 +250,7 @@ This allows users to quickly understand the severity of a transaction.
 
 Fraud-Shield does not only display whether a transaction is fraudulent.
 The frontend also displays the factors that contributed to the prediction.
+```text
 Example:
 is_international
         ↓
@@ -262,6 +263,7 @@ Increases Risk
 is_new_device
         ↓
 Increases Risk
+```
 SHAP-based explanations from the backend are presented in the frontend so that users can understand why a transaction was considered risky.
 ---
 🚨 Triggered Business Rules:
