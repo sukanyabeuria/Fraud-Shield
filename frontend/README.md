@@ -324,7 +324,8 @@ The frontend will normally be available at the URL shown by Vite, commonly:
 http://localhost:5173
 ```
 ---
-🔗 Running Frontend + Backend
+🔗 Running Frontend + Backend:
+```text
 The complete Fraud-Shield system can be run as:
 React Frontend
       ↓
@@ -335,6 +336,7 @@ FastAPI Backend
 localhost:8000
       ↓
 PostgreSQL Database
+```
 The frontend sends transaction information to:
 POST /api/v1/transactions/analyze
 The backend performs:
