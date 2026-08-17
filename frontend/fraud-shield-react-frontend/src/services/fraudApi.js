@@ -40,37 +40,59 @@ export async function getHealth({ signal } = {}) {
  *   different field names. Keys are snake_case to match FastAPI convention.
  */
 export function buildAnalyzePayload(form) {
-  const num = (v) => (v === "" || v === null || v === undefined ? null : Number(v));
+  const num = (v) =>
+    v === "" || v === null || v === undefined ? null : Number(v);
 
   // Combine the separate date + time inputs into one ISO timestamp.
   let timestamp = null;
+
   if (form.transactionDate && form.transactionTime) {
-    const parsed = new Date(`${form.transactionDate}T${form.transactionTime}`);
-    if (!Number.isNaN(parsed.getTime())) timestamp = parsed.toISOString();
+    const parsed = new Date(
+      `${form.transactionDate}T${form.transactionTime}`
+    );
+
+    if (!Number.isNaN(parsed.getTime())) {
+      timestamp = parsed.toISOString();
+    }
   }
 
   return {
     transaction_id: form.transactionId || null,
     amount: num(form.amount),
     currency: "INR",
+
     transaction_type: form.transactionType || null,
     merchant_category: form.merchantCategory || null,
+
     account_age_months: num(form.accountAge),
+
     location: form.location || null,
     device_type: form.deviceType || null,
     ip_address: form.ipAddress || null,
+
     transaction_date: form.transactionDate || null,
     transaction_time: form.transactionTime || null,
     timestamp,
-    transaction_count_24h: num(form.transactionCount),
+
     previous_amount: num(form.previousAmount),
     account_balance: num(form.accountBalance),
+
     is_card_present: Boolean(form.cardPresent),
-    is_international: Boolean(form.internationalTransfer),
-    is_new_recipient: Boolean(form.newRecipient),
+
+    // Frontend → Backend mapping
+    international_transfer: Boolean(form.internationalTransfer),
+
+    // Frontend → Backend mapping
+    new_recipient: Boolean(form.newRecipient),
+
+    // Frontend → Backend mapping
+    transaction_frequency: num(form.transactionCount),
+
+    // Current UI does not have a separate "new device" checkbox.
+    // Keep this false unless you later add that feature.
+    is_new_device: false,
   };
 }
-
 /** Pull the first defined value from a list of possible key names. */
 const pick = (obj, ...keys) => {
   for (const k of keys) {
