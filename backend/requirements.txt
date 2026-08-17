@@ -1,0 +1,16 @@
+fastapi==0.141.1
+uvicorn==0.52.3
+SQLAlchemy==2.0.52
+pydantic==2.13.4
+pydantic-settings==2.15.0
+python-dotenv
+pwdlib==0.3.1
+PyJWT==2.13.0
+email-validator==2.3.0
+argon2-cffi==25.1.0
+numpy
+pandas
+scikit-learn
+joblib
+shap
+xgboost

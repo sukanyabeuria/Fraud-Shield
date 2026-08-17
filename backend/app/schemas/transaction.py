@@ -8,6 +8,7 @@ class TransactionBase(BaseModel):
     currency: str = Field(..., example="INR")
     transaction_type: str = Field(..., example="Online Purchase")
     merchant_category: str = Field(..., example="Electronics")
+    merchant_name: Optional[str] = Field(None, example="Amazon")
     location: str = Field(..., example="Mumbai")
     ip_address: str = Field(..., example="192.168.1.1")
     device_type: str = Field(..., example="Mobile App")

@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.api.v1.router import api_router
 from app.core.config import settings
 
@@ -9,22 +10,33 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include API routers
-app.include_router(api_router, prefix="/api/v1")
+print("DEBUG: router routes before include:", len(api_router.routes))
 
-# Health check endpoint
+app.include_router(
+    api_router,
+    prefix="/api/v1",
+)
+
+print("DEBUG: app routes after include:")
+for route in app.routes:
+    print("DEBUG:", getattr(route, "methods", None), getattr(route, "path", None))
+
+
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "fraud-shield-backend"}
+    return {
+        "status": "healthy",
+        "service": "fraud-shield-backend",
+    }
+
 
 if __name__ == "__main__":
     import uvicorn

@@ -47,6 +47,7 @@ class Transaction(Base):
 
     merchant_category = Column(String)
     merchant_name = Column(String)
+    location = Column(String)
 
     ip_address = Column(String)
     device_type = Column(String)
