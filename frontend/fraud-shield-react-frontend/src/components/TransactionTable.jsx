@@ -1,7 +1,7 @@
 import { Eye, Inbox } from "lucide-react";
 import RiskBadge from "./RiskBadge";
 import { RiskBar } from "./RiskScore";
-import { formatCurrency, formatDateTime } from "../data/mockData";
+import { formatCurrency, formatDateTime, toRiskLevelLabel, toStatusLabel } from "../utils/format";
 import { cn } from "../utils/cn";
 
 /**
@@ -60,14 +60,18 @@ export default function TransactionTable({
                   <td className="whitespace-nowrap px-3 py-3.5 text-xs text-slate-300">{t.type}</td>
                 )}
                 <td className="px-3 py-3.5">
-                  <RiskBadge value={t.status} type="status" />
+                  <RiskBadge value={toStatusLabel(t.status)} type="status" />
                 </td>
                 <td className="px-3 py-3.5">
-                  <RiskBar score={t.riskScore} />
+                  {t.riskScore === null || t.riskScore === undefined ? (
+                    <span className="text-xs text-slate-600">Not scored</span>
+                  ) : (
+                    <RiskBar score={t.riskScore} />
+                  )}
                 </td>
                 {!compact && (
                   <td className="px-3 py-3.5">
-                    <RiskBadge value={t.riskLevel} />
+                    {t.riskLevel ? <RiskBadge value={toRiskLevelLabel(t.riskLevel)} /> : "—"}
                   </td>
                 )}
                 <td className="px-3 py-3.5 text-right">
@@ -95,18 +99,26 @@ export default function TransactionTable({
                 <p className="font-mono text-xs font-semibold text-sky-300">{t.id}</p>
                 <p className="mt-0.5 text-[11px] text-slate-500">{formatDateTime(t.date)}</p>
               </div>
-              <RiskBadge value={t.status} type="status" />
+              <RiskBadge value={toStatusLabel(t.status)} type="status" />
             </div>
             <div className="mt-3 flex items-end justify-between gap-3">
               <div>
-                <p className="text-lg font-bold text-white">{formatCurrency(t.amount)}</p>
+                <p className="text-lg font-bold text-white">{formatCurrency(t.amount, t.currency)}</p>
                 <p className="text-[11px] text-slate-500">
-                  {t.type} · {t.location}
+                  {[t.type, t.location].filter(Boolean).join(" · ")}
                 </p>
               </div>
               <div className="text-right">
-                <RiskBar score={t.riskScore} />
-                <p className="mt-1 text-[11px] text-slate-500">{t.riskLevel} risk</p>
+                {t.riskScore === null || t.riskScore === undefined ? (
+                  <span className="text-xs text-slate-600">Not scored</span>
+                ) : (
+                  <>
+                    <RiskBar score={t.riskScore} />
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      {toRiskLevelLabel(t.riskLevel) ?? "—"} risk
+                    </p>
+                  </>
+                )}
               </div>
             </div>
             <button

@@ -3,6 +3,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
+import { API_BASE_URL } from "../config/api";
 
 /**
  * Protected app shell: fixed sidebar (desktop) + collapsible drawer (mobile)
@@ -25,8 +26,7 @@ export default function DashboardLayout() {
           <Outlet />
         </main>
         <footer className="border-t border-white/5 px-6 py-5 text-center text-[11px] text-slate-600">
-          Fraud-Shield · AI Risk Engine · Demo build with mock data — backend, ML model &amp;
-          Explainable AI integration pending
+          Fraud-Shield · AI Risk Engine · Connected to {API_BASE_URL}
         </footer>
       </div>
     </div>
