@@ -56,42 +56,33 @@ export function buildAnalyzePayload(form) {
     }
   }
 
-  return {
-    transaction_id: form.transactionId || null,
-    amount: num(form.amount),
-    currency: "INR",
+ return {
+  transaction_id: form.transactionId || null,
+  amount: num(form.amount),
+  currency: "INR",
 
-    transaction_type: form.transactionType || null,
-    merchant_category: form.merchantCategory || null,
+  transaction_type: form.transactionType || null,
+  merchant_category: form.merchantCategory || null,
 
-    account_age_months: num(form.accountAge),
+  account_age: num(form.accountAge),
+  previous_amount: num(form.previousAmount),
 
-    location: form.location || null,
-    device_type: form.deviceType || null,
-    ip_address: form.ipAddress || null,
+  location: form.location || null,
+  device_type: form.deviceType || null,
+  ip_address: form.ipAddress || "0.0.0.0",
 
-    transaction_date: form.transactionDate || null,
-    transaction_time: form.transactionTime || null,
-    timestamp,
+  transaction_date: form.transactionDate || null,
+  transaction_time: form.transactionTime || null,
+  timestamp,
 
-    previous_amount: num(form.previousAmount),
-    account_balance: num(form.accountBalance),
+  account_balance: num(form.accountBalance),
+  is_card_present: Boolean(form.cardPresent),
 
-    is_card_present: Boolean(form.cardPresent),
-
-    // Frontend → Backend mapping
-    international_transfer: Boolean(form.internationalTransfer),
-
-    // Frontend → Backend mapping
-    new_recipient: Boolean(form.newRecipient),
-
-    // Frontend → Backend mapping
-    transaction_frequency: num(form.transactionCount),
-
-    // Current UI does not have a separate "new device" checkbox.
-    // Keep this false unless you later add that feature.
-    is_new_device: false,
-  };
+  international_transfer: Boolean(form.internationalTransfer),
+  new_recipient: Boolean(form.newRecipient),
+  transaction_frequency: num(form.transactionCount),
+  is_new_device: false,
+};
 }
 /** Pull the first defined value from a list of possible key names. */
 const pick = (obj, ...keys) => {
