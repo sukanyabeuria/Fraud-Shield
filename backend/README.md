@@ -1154,20 +1154,19 @@ the backend is already running.
 
 ---
 
-# 🔗 Frontend Integration
+# 🔗 Frontend Integration Status
 
-The backend is ready to be consumed by the React frontend.
+The backend APIs are implemented and ready to be consumed by the React frontend. The remaining work is **frontend-to-backend integration**, not implementation of a frontend mock prediction system.
 
-The main fraud-analysis integration point is:
-
-```text
-POST /api/v1/transactions/analyze
-```
-
-The authentication integration point is:
+The primary integration points are:
 
 ```text
 POST /api/v1/auth/login
+POST /api/v1/transactions/analyze
+GET  /api/v1/transactions
+GET  /api/v1/transactions/{id}
+GET  /api/v1/analytics
+GET  /api/v1/analytics/summary
 ```
 
 The intended frontend flow is:
@@ -1200,16 +1199,7 @@ FraudCheckResponse
 Fraud Result UI
 ```
 
-Additional frontend data can be retrieved through:
-
-```text
-GET /api/v1/transactions
-GET /api/v1/transactions/{id}
-GET /api/v1/analytics
-GET /api/v1/analytics/summary
-```
-
-The actual React-to-backend integration remains a separate next step.
+The existing React frontend does not need to have its prediction logic described as mock data. The pending work is to **connect the existing frontend interfaces to the real backend APIs and render the returned API data**.
 
 ---
 
@@ -1328,23 +1318,36 @@ The combination of **ML + business rules + explainability + authentication + ana
 * [x] Authentication testing
 * [x] OpenAPI route verification
 
-## Next Steps
+## Frontend Integration Pending
 
-* [ ] Connect existing React frontend to authentication API
+* [ ] Connect existing React login form to `/api/v1/auth/login`
 * [ ] Store and manage JWT token in the frontend
-* [ ] Connect React transaction form to `/api/v1/transactions/analyze`
-* [ ] Replace frontend mock prediction logic
-* [ ] Connect Fraud Result UI with real API response
+* [ ] Add authenticated frontend requests
+* [ ] Connect existing React transaction form to `/api/v1/transactions/analyze`
+* [ ] Connect Fraud Result UI with the real API response
 * [ ] Connect transaction history UI with `/api/v1/transactions`
 * [ ] Connect dashboard analytics UI with `/api/v1/analytics`
-* [ ] Add authorization middleware/dependencies to protected endpoints
-* [ ] Add role-based authorization where required
-* [ ] Add production database migrations
-* [ ] Add automated backend tests
-* [ ] Add API error handling and logging
-* [ ] Resolve long-term XGBoost model serialization compatibility
-* [ ] Deploy backend and database
-* [ ] Complete production frontend/backend integration
+* [ ] Connect dashboard analytics UI with `/api/v1/analytics/summary`
+* [ ] Verify frontend API loading, error, and response states
+* [ ] Complete end-to-end frontend/backend integration
+
+## Future Enhancements
+
+* [ ] User registration API
+* [ ] Refresh-token flow
+* [ ] Role-based authorization
+* [ ] Password reset
+* [ ] Production database migrations
+* [ ] Automated backend tests
+* [ ] API error handling and structured logging
+* [ ] Real-time transaction streaming
+* [ ] Advanced anomaly detection
+* [ ] Model retraining pipeline
+* [ ] Continuous model monitoring
+* [ ] Production deployment
+* [ ] Cloud database integration
+* [ ] Advanced fraud analytics
+* [ ] Alert and notification system
 
 ---
 
@@ -1354,3 +1357,4 @@ The combination of **ML + business rules + explainability + authentication + ana
 
 The goal is not only to detect fraud, but to provide a clear and understandable explanation of **why a transaction was considered risky**, while providing secure authentication, persistent transaction records, and analytics for the application dashboard.
 
+The backend is currently ready for the next phase: **frontend-to-backend integration**, where the existing React interfaces will be connected to the implemented authentication, transaction analysis, transaction history, and analytics APIs.
