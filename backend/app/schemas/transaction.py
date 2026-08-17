@@ -9,9 +9,15 @@ class TransactionBase(BaseModel):
     transaction_type: str = Field(..., example="Online Purchase")
     merchant_category: str = Field(..., example="Electronics")
     merchant_name: Optional[str] = Field(None, example="Amazon")
+
+    # ML features
+    account_age: float = Field(..., ge=0, example=24)
+    previous_amount: float = Field(..., ge=0, example=3500)
+
     location: str = Field(..., example="Mumbai")
     ip_address: str = Field(..., example="192.168.1.1")
     device_type: str = Field(..., example="Mobile App")
+
     international_transfer: bool = Field(..., example=False)
     new_recipient: bool = Field(..., example=False)
     transaction_frequency: int = Field(..., ge=0, example=5)
