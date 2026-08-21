@@ -26,6 +26,19 @@ class User(Base):
     role = Column(String(50), nullable=False, default="user")
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # Notification settings
+    fraud_alerts = Column(Boolean, nullable=False, default=True)
+    high_risk_only = Column(Boolean, nullable=False, default=False)
+    weekly_digest = Column(Boolean, nullable=False, default=True)
+    email_alerts = Column(Boolean, nullable=False, default=True)
+    sms_alerts = Column(Boolean, nullable=False, default=False)
+
+    # Security settings
+    two_factor = Column(Boolean, nullable=False, default=True)
+    login_alerts = Column(Boolean, nullable=False, default=True)
+    auto_block = Column(Boolean, nullable=False, default=True)
+    session_timeout = Column(Boolean, nullable=False, default=False)
+
     transactions = relationship(
         "Transaction",
         back_populates="user",

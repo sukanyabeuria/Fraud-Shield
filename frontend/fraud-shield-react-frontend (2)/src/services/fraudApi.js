@@ -15,7 +15,7 @@
  */
 
 import { ENDPOINTS } from "../config/api";
-import { get, post, ApiError, ERROR_KIND } from "./httpClient";
+import { get, post, patch, ApiError, ERROR_KIND } from "./httpClient";
 import { riskLevelFromScore, toRiskLevelLabel, toPercent } from "../utils/format";
 
 export { ApiError, ERROR_KIND };
@@ -468,6 +468,14 @@ export async function getCurrentUser({ signal, token } = {}) {
   return normalizeUser(payload);
 }
 
+export async function getAuthSettings({ signal } = {}) {
+  return get(ENDPOINTS.settings, { signal });
+}
+
+export async function updateAuthSettings(settings, { signal } = {}) {
+  return patch(ENDPOINTS.settings, settings, { signal });
+}
+
 export default {
   getHealth,
   analyzeTransaction,
@@ -481,4 +489,6 @@ export default {
   login,
   register,
   getCurrentUser,
+  getAuthSettings,
+  updateAuthSettings,
 };

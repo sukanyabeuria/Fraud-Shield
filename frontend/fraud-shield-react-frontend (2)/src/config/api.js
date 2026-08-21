@@ -50,6 +50,7 @@ export const ENDPOINTS = {
   register: `${V1}/auth/register`,
   me: `${V1}/auth/me`,
   sessions: `${V1}/auth/sessions`,
+  settings: `${V1}/auth/settings`,
 };
 
 /** Build an absolute URL from an endpoint path. */

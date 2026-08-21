@@ -92,6 +92,18 @@ export async function request(path, { method = "GET", body, headers, signal, tim
       headers: {
         Accept: "application/json",
         ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+        ...(() => {
+          try {
+            const raw = localStorage.getItem("fraudshield.session");
+            const session = raw ? JSON.parse(raw) : null;
+
+            return session?.token
+              ? { Authorization: `Bearer ${session.token}` }
+              : {};
+          } catch {
+            return {};
+          }
+        })(),
         ...headers,
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Bell,
@@ -29,6 +29,7 @@ import { useAuth } from "../context/AuthContext";
 import { useApi } from "../hooks/useApi";
 import { get } from "../services/httpClient";
 import { ENDPOINTS } from "../config/api";
+import { getAuthSettings, updateAuthSettings } from "../services/fraudApi";
 import { formatDateTime } from "../utils/format";
 import { cn } from "../utils/cn";
 
@@ -69,6 +70,44 @@ export default function Profile() {
     sessionTimeout: false,
   });
   const [theme, setTheme] = useState("dark");
+  const [settingsLoading, setSettingsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSettings() {
+      try {
+        const data = await getAuthSettings();
+
+        if (cancelled) return;
+
+        setNotifications({
+          fraudAlerts: Boolean(data.fraud_alerts),
+          weeklyDigest: Boolean(data.weekly_digest),
+          highRiskOnly: Boolean(data.high_risk_only),
+          emailAlerts: Boolean(data.email_alerts),
+          smsAlerts: Boolean(data.sms_alerts),
+        });
+
+        setSecurity({
+          twoFactor: Boolean(data.two_factor),
+          loginAlerts: Boolean(data.login_alerts),
+          autoBlock: Boolean(data.auto_block),
+          sessionTimeout: Boolean(data.session_timeout),
+        });
+      } catch (err) {
+        console.error("Failed to load persisted settings:", err);
+      } finally {
+        if (!cancelled) setSettingsLoading(false);
+      }
+    }
+
+    loadSettings();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // GET /api/v1/auth/sessions — real active sessions, no hardcoded list.
   const sessionsQuery = useApi(async ({ signal }) => {
@@ -318,29 +357,79 @@ export default function Profile() {
                 label="Real-time fraud alerts"
                 description="Push an alert the moment fraud is detected"
                 checked={notifications.fraudAlerts}
-                onChange={(v) => setNotifications((n) => ({ ...n, fraudAlerts: v }))}
+                onChange={async (v) => {
+                  setNotifications((n) => ({ ...n, fraudAlerts: v }));
+                  try {
+                    await updateAuthSettings({ fraud_alerts: v });
+                    flash("Fraud alerts updated");
+                  } catch (err) {
+                    console.error(err);
+                    setNotifications((n) => ({ ...n, fraudAlerts: !v }));
+                    flash("Could not save fraud alerts");
+                  }
+                }}
               />
               <Toggle
                 label="High-risk only"
                 description="Suppress low and medium risk notifications"
                 checked={notifications.highRiskOnly}
-                onChange={(v) => setNotifications((n) => ({ ...n, highRiskOnly: v }))}
+                onChange={async (v) => {
+                  setNotifications((n) => ({ ...n, highRiskOnly: v }));
+                  try {
+                    await updateAuthSettings({ high_risk_only: v });
+                    flash("High-risk filter updated");
+                  } catch (err) {
+                    console.error(err);
+                    setNotifications((n) => ({ ...n, highRiskOnly: !v }));
+                    flash("Could not save high-risk filter");
+                  }
+                }}
               />
               <Toggle
                 label="Weekly digest"
                 description="Summary report every Monday morning"
                 checked={notifications.weeklyDigest}
-                onChange={(v) => setNotifications((n) => ({ ...n, weeklyDigest: v }))}
+                onChange={async (v) => {
+                  setNotifications((n) => ({ ...n, weeklyDigest: v }));
+                  try {
+                    await updateAuthSettings({ weekly_digest: v });
+                    flash("Weekly digest updated");
+                  } catch (err) {
+                    console.error(err);
+                    setNotifications((n) => ({ ...n, weeklyDigest: !v }));
+                    flash("Could not save weekly digest");
+                  }
+                }}
               />
               <Toggle
                 label="Email alerts"
                 checked={notifications.emailAlerts}
-                onChange={(v) => setNotifications((n) => ({ ...n, emailAlerts: v }))}
+                onChange={async (v) => {
+                  setNotifications((n) => ({ ...n, emailAlerts: v }));
+                  try {
+                    await updateAuthSettings({ email_alerts: v });
+                    flash("Email alerts updated");
+                  } catch (err) {
+                    console.error(err);
+                    setNotifications((n) => ({ ...n, emailAlerts: !v }));
+                    flash("Could not save email alerts");
+                  }
+                }}
               />
               <Toggle
                 label="SMS alerts"
                 checked={notifications.smsAlerts}
-                onChange={(v) => setNotifications((n) => ({ ...n, smsAlerts: v }))}
+                onChange={async (v) => {
+                  setNotifications((n) => ({ ...n, smsAlerts: v }));
+                  try {
+                    await updateAuthSettings({ sms_alerts: v });
+                    flash("SMS alerts updated");
+                  } catch (err) {
+                    console.error(err);
+                    setNotifications((n) => ({ ...n, smsAlerts: !v }));
+                    flash("Could not save SMS alerts");
+                  }
+                }}
               />
             </div>
           </ChartCard>
@@ -355,23 +444,63 @@ export default function Profile() {
                 label="Two-factor authentication"
                 description="Require an OTP at every sign-in"
                 checked={security.twoFactor}
-                onChange={(v) => setSecurity((s) => ({ ...s, twoFactor: v }))}
+                onChange={async (v) => {
+                  setSecurity((s) => ({ ...s, twoFactor: v }));
+                  try {
+                    await updateAuthSettings({ two_factor: v });
+                    flash("Two-factor setting updated");
+                  } catch (err) {
+                    console.error(err);
+                    setSecurity((s) => ({ ...s, twoFactor: !v }));
+                    flash("Could not save two-factor setting");
+                  }
+                }}
               />
               <Toggle
                 label="New login alerts"
                 checked={security.loginAlerts}
-                onChange={(v) => setSecurity((s) => ({ ...s, loginAlerts: v }))}
+                onChange={async (v) => {
+                  setSecurity((s) => ({ ...s, loginAlerts: v }));
+                  try {
+                    await updateAuthSettings({ login_alerts: v });
+                    flash("Login alerts updated");
+                  } catch (err) {
+                    console.error(err);
+                    setSecurity((s) => ({ ...s, loginAlerts: !v }));
+                    flash("Could not save login alerts");
+                  }
+                }}
               />
               <Toggle
                 label="Auto-block high-risk transactions"
                 description="Block automatically when score ≥ 85"
                 checked={security.autoBlock}
-                onChange={(v) => setSecurity((s) => ({ ...s, autoBlock: v }))}
+                onChange={async (v) => {
+                  setSecurity((s) => ({ ...s, autoBlock: v }));
+                  try {
+                    await updateAuthSettings({ auto_block: v });
+                    flash("Auto-block setting updated");
+                  } catch (err) {
+                    console.error(err);
+                    setSecurity((s) => ({ ...s, autoBlock: !v }));
+                    flash("Could not save auto-block setting");
+                  }
+                }}
               />
               <Toggle
                 label="Auto sign-out after 15 min"
                 checked={security.sessionTimeout}
-                onChange={(v) => setSecurity((s) => ({ ...s, sessionTimeout: v }))}
+                onChange={async (v) => {
+                  setSecurity((s) => ({ ...s, sessionTimeout: v }));
+                  try {
+                    await updateAuthSettings({ session_timeout: v });
+                    flash("Session timeout updated");
+                  } catch (err) {
+                    console.error(err);
+                    setSecurity((s) => ({ ...s, sessionTimeout: !v }));
+                    flash("Could not save session timeout");
+                  }
+                }}
               />
             </div>
           </ChartCard>

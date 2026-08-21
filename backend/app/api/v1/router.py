@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pwdlib import PasswordHash
 import jwt
 from sqlalchemy import func, case
@@ -16,6 +16,7 @@ from app.services.rule_engine import RuleEngine
 from app.utils.hybrid_scoring import HybridScorer
 from app.core.database import SessionLocal
 from app.core.config import settings
+from app.api.v1.auth_utils import get_current_user
 from app.models.models import (
     Transaction as DBTransaction,
     FraudEvaluation,
@@ -35,6 +36,75 @@ hybrid_scorer = HybridScorer()
 
 # Initialize ML model
 ml_service.initialize()
+
+
+@api_router.post("/auth/register", response_model=LoginResponse, status_code=201)
+def register(request: dict):
+    """Create a real user account and return a JWT access token."""
+    db: Session = SessionLocal()
+
+    try:
+        email = str(request.get("email", "")).strip().lower()
+        password = str(request.get("password", ""))
+        full_name = str(request.get("full_name", "")).strip()
+
+        if not email or not password:
+            raise HTTPException(
+                status_code=422,
+                detail="Email and password are required",
+            )
+
+        if len(password) < 8:
+            raise HTTPException(
+                status_code=422,
+                detail="Password must be at least 8 characters",
+            )
+
+        existing = db.query(User).filter(User.email == email).first()
+        if existing:
+            raise HTTPException(
+                status_code=409,
+                detail="An account with this email already exists",
+            )
+
+        parts = full_name.split(None, 1)
+        first_name = parts[0] if parts else None
+        last_name = parts[1] if len(parts) > 1 else None
+
+        user = User(
+            email=email,
+            password_hash=password_hash.hash(password),
+            first_name=first_name,
+            last_name=last_name,
+            role="user",
+        )
+
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        payload = {
+            "sub": str(user.id),
+            "email": user.email,
+            "role": user.role,
+        }
+
+        token = jwt.encode(
+            payload,
+            settings.SECRET_KEY,
+            algorithm=settings.ALGORITHM,
+        )
+
+        return LoginResponse(
+            access_token=token,
+            token_type="bearer",
+            user_id=user.id,
+            email=user.email,
+            role=user.role,
+        )
+
+    finally:
+        db.close()
 
 
 @api_router.post("/auth/login", response_model=LoginResponse)
@@ -88,6 +158,77 @@ def login(request: LoginRequest):
         db.close()
 
 
+@api_router.get("/auth/settings")
+def get_auth_settings(current_user: User = Depends(get_current_user)):
+    """Return persisted security and notification settings for the current user."""
+    return {
+        "two_factor": current_user.two_factor,
+        "login_alerts": current_user.login_alerts,
+        "auto_block": current_user.auto_block,
+        "session_timeout": current_user.session_timeout,
+        "fraud_alerts": current_user.fraud_alerts,
+        "high_risk_only": current_user.high_risk_only,
+        "weekly_digest": current_user.weekly_digest,
+        "email_alerts": current_user.email_alerts,
+        "sms_alerts": current_user.sms_alerts,
+    }
+
+
+@api_router.patch("/auth/settings")
+def update_auth_settings(
+    settings_update: dict,
+    current_user: User = Depends(get_current_user),
+):
+    """Persist allowed security and notification settings for the current user."""
+
+    allowed = {
+        "two_factor",
+        "login_alerts",
+        "auto_block",
+        "session_timeout",
+        "fraud_alerts",
+        "high_risk_only",
+        "weekly_digest",
+        "email_alerts",
+        "sms_alerts",
+    }
+
+    for key, value in settings_update.items():
+        if key not in allowed:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unknown setting: {key}",
+            )
+
+        if not isinstance(value, bool):
+            raise HTTPException(
+                status_code=422,
+                detail=f"{key} must be a boolean",
+            )
+
+        setattr(current_user, key, value)
+
+    db = SessionLocal()
+    try:
+        db.merge(current_user)
+        db.commit()
+        db.refresh(current_user)
+
+        return {
+            "two_factor": current_user.two_factor,
+            "login_alerts": current_user.login_alerts,
+            "auto_block": current_user.auto_block,
+            "session_timeout": current_user.session_timeout,
+            "fraud_alerts": current_user.fraud_alerts,
+            "high_risk_only": current_user.high_risk_only,
+            "weekly_digest": current_user.weekly_digest,
+            "email_alerts": current_user.email_alerts,
+            "sms_alerts": current_user.sms_alerts,
+        }
+    finally:
+        db.close()
+
+
 @api_router.get("/health")
 def health_check():
     return {
@@ -95,6 +236,113 @@ def health_check():
         "service": "Fraud-Shield API",
     }
 
+
+@api_router.get("/auth/sessions")
+def auth_sessions(request: Request):
+    """
+    Return the current authenticated browser session represented by the JWT.
+    No fake sessions are created and no sessions table is required.
+    """
+    authorization = request.headers.get("Authorization", "")
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required",
+        )
+
+    token = authorization[7:].strip()
+
+    try:
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+        )
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired authentication token",
+        )
+
+    user_id = payload.get("sub")
+    email = payload.get("email")
+    role = payload.get("role")
+
+    if not user_id or not email:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authentication token",
+        )
+
+    return {
+        "items": [
+            {
+                "id": "current",
+                "user_id": int(user_id),
+                "email": email,
+                "role": role,
+                "device": "Current browser",
+                "user_agent": request.headers.get(
+                    "User-Agent",
+                    "Current browser session",
+                ),
+                "ip_address": request.client.host if request.client else None,
+                "issued_at": None,
+                "is_current": True,
+            }
+        ],
+        "total": 1,
+    }
+
+
+
+@api_router.get("/alerts")
+def alerts(current_user: User = Depends(get_current_user)):
+    """Return real alerts derived from the user's persisted transactions."""
+    db: Session = SessionLocal()
+
+    try:
+        transactions = (
+            db.query(DBTransaction)
+            .filter(DBTransaction.user_id == current_user.id)
+            .filter(
+                func.lower(DBTransaction.risk_level).in_(
+                    ["high", "critical"]
+                )
+            )
+            .order_by(DBTransaction.created_at.desc())
+            .limit(50)
+            .all()
+        )
+
+        items = []
+
+        for tx in transactions:
+            level = str(tx.risk_level or "high").title()
+
+            items.append({
+                "id": tx.id,
+                "title": f"{level} risk transaction",
+                "detail": (
+                    f"Transaction {tx.transaction_id} "
+                    f"scored {tx.risk_score}/100."
+                ),
+                "level": level,
+                "risk_level": tx.risk_level,
+                "risk_score": tx.risk_score,
+                "transaction_id": tx.transaction_id,
+                "created_at": tx.created_at.isoformat()
+                if tx.created_at else None,
+            })
+
+        return {
+            "items": items,
+            "total": len(items),
+        }
+
+    finally:
+        db.close()
 
 
 @api_router.get("/analytics/summary")

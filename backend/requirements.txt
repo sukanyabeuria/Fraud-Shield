@@ -14,3 +14,5 @@ scikit-learn
 joblib
 shap
 xgboost
+
+psycopg2-binary

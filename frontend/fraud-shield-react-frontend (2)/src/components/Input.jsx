@@ -94,27 +94,56 @@ export function Checkbox({ label, className, ...props }) {
   );
 }
 
-export function Toggle({ checked, onChange, label, description }) {
+export function Toggle({
+  label,
+  description,
+  checked = false,
+  onChange,
+  disabled = false,
+}) {
+  const isOn = Boolean(checked);
+
   return (
-    <div className="flex items-center justify-between gap-4 py-3">
-      <div className="min-w-0">
-        <p className="text-sm font-medium text-slate-100">{label}</p>
-        {description && <p className="mt-0.5 text-xs text-slate-500">{description}</p>}
+    <div className="flex w-full items-center justify-between gap-4 px-5 py-4">
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-semibold text-slate-200">
+          {label}
+        </div>
+
+        {description && (
+          <div className="mt-1 text-xs leading-5 text-slate-400">
+            {description}
+          </div>
+        )}
       </div>
+
       <button
         type="button"
         role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
+        aria-checked={isOn}
+        aria-label={label}
+        disabled={disabled}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onChange?.(!isOn);
+        }}
         className={cn(
-          "relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200",
-          checked ? "bg-sky-500" : "bg-white/15"
+          "relative z-10 flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full border p-0",
+          "transition-all duration-200",
+          "focus:outline-none focus:ring-2 focus:ring-cyan-400/50",
+          isOn
+            ? "border-cyan-400/40 bg-cyan-500"
+            : "border-white/10 bg-slate-700",
+          disabled && "cursor-not-allowed opacity-50"
         )}
       >
         <span
+          aria-hidden="true"
           className={cn(
-            "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200",
-            checked ? "translate-x-[22px]" : "translate-x-0.5"
+            "pointer-events-none block h-5 w-5 rounded-full bg-white shadow-md",
+            "transition-transform duration-200",
+            isOn ? "translate-x-6" : "translate-x-1"
           )}
         />
       </button>
