@@ -23,7 +23,13 @@ import {
 import ChartCard from "../components/ChartCard";
 import Input, { Toggle } from "../components/Input";
 import Button from "../components/Button";
+import ErrorState from "../components/ErrorState";
+import { Skeleton } from "../components/Loading";
 import { useAuth } from "../context/AuthContext";
+import { useApi } from "../hooks/useApi";
+import { get } from "../services/httpClient";
+import { ENDPOINTS } from "../config/api";
+import { formatDateTime } from "../utils/format";
 import { cn } from "../utils/cn";
 
 const THEMES = [
@@ -32,11 +38,7 @@ const THEMES = [
   { id: "system", label: "System", icon: Monitor },
 ];
 
-const SESSIONS = [
-  { device: "MacBook Pro · Chrome", location: "Mumbai, IN", time: "Active now", current: true },
-  { device: "iPhone 15 · Fraud-Shield App", location: "Mumbai, IN", time: "2 hours ago" },
-  { device: "Windows 11 · Edge", location: "Pune, IN", time: "Yesterday, 18:42" },
-];
+
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -67,6 +69,13 @@ export default function Profile() {
     sessionTimeout: false,
   });
   const [theme, setTheme] = useState("dark");
+
+  // GET /api/v1/auth/sessions — real active sessions, no hardcoded list.
+  const sessionsQuery = useApi(async ({ signal }) => {
+    const payload = await get(ENDPOINTS.sessions, { signal });
+    if (Array.isArray(payload)) return payload;
+    return payload?.items ?? payload?.data ?? payload?.sessions ?? [];
+  }, []);
 
   const flash = (msg) => {
     setSaved(msg);
@@ -127,7 +136,7 @@ export default function Profile() {
               </div>
               <button
                 type="button"
-                onClick={() => flash("Profile picture upload is mocked in this demo.")}
+                onClick={() => flash("Profile picture upload requires a backend upload endpoint.")}
                 className="absolute -bottom-1.5 -right-1.5 rounded-lg border border-white/15 bg-[#0b1120] p-1.5 text-slate-300 hover:text-sky-300"
                 aria-label="Change picture"
               >
@@ -244,40 +253,56 @@ export default function Profile() {
             </form>
           </ChartCard>
 
-          {/* Sessions */}
+          {/* Sessions — real data from the backend */}
           <ChartCard title="Active Sessions" subtitle="Devices signed in to your account">
-            <ul className="space-y-2.5">
-              {SESSIONS.map((s) => (
-                <li
-                  key={s.device}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] text-slate-300">
-                      <Smartphone className="h-4 w-4" />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-semibold text-slate-100">{s.device}</p>
-                      <p className="truncate text-[11px] text-slate-500">
-                        {s.location} · {s.time}
-                      </p>
+            {sessionsQuery.loading ? (
+              <div className="space-y-2">
+                {[0, 1].map((i) => (
+                  <Skeleton key={i} className="h-14 w-full" />
+                ))}
+              </div>
+            ) : sessionsQuery.error ? (
+              <ErrorState
+                compact
+                error={sessionsQuery.error}
+                onRetry={sessionsQuery.refetch}
+                title="Session list unavailable"
+              />
+            ) : (sessionsQuery.data ?? []).length === 0 ? (
+              <p className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-6 text-center text-xs text-slate-500">
+                No active sessions reported by the backend.
+              </p>
+            ) : (
+              <ul className="space-y-2.5">
+                {sessionsQuery.data.map((s, i) => (
+                  <li
+                    key={s.id ?? i}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] text-slate-300">
+                        <Smartphone className="h-4 w-4" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-semibold text-slate-100">
+                          {s.user_agent ?? s.device ?? "Unknown device"}
+                        </p>
+                        <p className="truncate text-[11px] text-slate-500">
+                          {[s.ip_address ?? s.location, s.issued_at ? formatDateTime(s.issued_at) : null]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  {s.current ? (
-                    <span className="shrink-0 rounded-full bg-emerald-500/12 px-2.5 py-1 text-[10px] font-bold text-emerald-300">
-                      CURRENT
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => flash("Session revoked (mock).")}
-                      className="shrink-0 text-[11px] font-semibold text-rose-300 hover:text-rose-200"
-                    >
-                      Revoke
-                    </button>
-                  )}
-                </li>
-              ))}
-            </ul>
+                    {s.is_current && (
+                      <span className="shrink-0 rounded-full bg-emerald-500/12 px-2.5 py-1 text-[10px] font-bold text-emerald-300">
+                        CURRENT
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </ChartCard>
         </div>
 
