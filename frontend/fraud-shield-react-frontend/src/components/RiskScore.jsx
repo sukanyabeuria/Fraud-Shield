@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { cn } from "../utils/cn";
-import { riskLevelFromScore } from "../utils/format";
+import { riskLevelFromScore } from "../data/mockData";
 
 const COLORS = {
   Low: { stroke: "#22c55e", text: "text-emerald-300", glow: "shadow-emerald-500/30" },

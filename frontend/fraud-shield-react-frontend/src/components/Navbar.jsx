@@ -1,11 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Bell, ChevronDown, LogOut, Menu, Search, Settings, ShieldAlert, User } from "lucide-react";
-import ErrorState from "./ErrorState";
+import { mockAlerts } from "../data/mockData";
 import { useAuth } from "../context/AuthContext";
-import { useApi } from "../hooks/useApi";
-import { getAlerts } from "../services/fraudApi";
-import { formatDateTime } from "../utils/format";
 import { cn } from "../utils/cn";
 
 const TITLES = {
@@ -30,14 +27,6 @@ export default function Navbar({ onMenuClick }) {
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const wrapRef = useRef(null);
-
-  // Real alerts from the backend. Only requested when the dropdown is opened.
-  const {
-    data: alerts,
-    error: alertsError,
-    loading: alertsLoading,
-  } = useApi(({ signal }) => getAlerts({ signal }), [], { enabled: alertsOpen });
-  const alertList = alerts ?? [];
 
   const meta = TITLES[pathname] ?? { title: "Fraud-Shield", sub: "AI powered fraud detection" };
 
@@ -75,7 +64,7 @@ export default function Navbar({ onMenuClick }) {
           <p className="hidden truncate text-xs text-slate-500 sm:block">{meta.sub}</p>
         </div>
 
-        {/* Global search — routes to the History page, which queries the backend */}
+        {/* Global search (mock) */}
         <div className="relative hidden xl:block">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
           <input
@@ -97,53 +86,34 @@ export default function Navbar({ onMenuClick }) {
               aria-label="Alerts"
             >
               <Bell className="h-5 w-5" />
-              {alertList.length > 0 && (
-                <span className="absolute right-1.5 top-1.5 flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500" />
-                </span>
-              )}
+              <span className="absolute right-1.5 top-1.5 flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500" />
+              </span>
             </button>
 
             {alertsOpen && (
               <div className="animate-fade-up absolute right-0 mt-2 w-[300px] overflow-hidden rounded-2xl border border-white/10 bg-[#0b1120]/98 shadow-2xl backdrop-blur-xl sm:w-[340px]">
                 <div className="flex items-center justify-between border-b border-white/8 px-4 py-3">
                   <p className="text-sm font-semibold text-white">Live Alerts</p>
-                  {alertList.length > 0 && (
-                    <span className="rounded-full bg-rose-500/15 px-2 py-0.5 text-[10px] font-bold text-rose-300">
-                      {alertList.length} NEW
-                    </span>
-                  )}
+                  <span className="rounded-full bg-rose-500/15 px-2 py-0.5 text-[10px] font-bold text-rose-300">
+                    {mockAlerts.length} NEW
+                  </span>
                 </div>
-                <div className="max-h-80 overflow-y-auto">
-                  {alertsLoading && (
-                    <p className="px-4 py-6 text-center text-xs text-slate-500">Loading alerts…</p>
-                  )}
-                  {!alertsLoading && alertsError && (
-                    <ErrorState compact error={alertsError} className="m-3" title="Alerts unavailable" />
-                  )}
-                  {!alertsLoading && !alertsError && alertList.length === 0 && (
-                    <p className="px-4 py-6 text-center text-xs text-slate-500">No active alerts.</p>
-                  )}
-                  {!alertsLoading && !alertsError && alertList.length > 0 && (
-                    <ul className="divide-y divide-white/[0.06]">
-                      {alertList.map((a) => (
-                        <li key={a.id} className="flex gap-3 px-4 py-3 transition-colors hover:bg-white/[0.03]">
-                          <div className={cn("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", LEVEL_COLOR[a.level] ?? LEVEL_COLOR.Medium)}>
-                            <ShieldAlert className="h-4 w-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="truncate text-xs font-semibold text-slate-100">{a.title}</p>
-                            <p className="truncate text-[11px] text-slate-500">{a.detail}</p>
-                            {a.time && (
-                              <p className="mt-0.5 text-[10px] text-slate-600">{formatDateTime(a.time)}</p>
-                            )}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+                <ul className="max-h-80 divide-y divide-white/[0.06] overflow-y-auto">
+                  {mockAlerts.map((a) => (
+                    <li key={a.id} className="flex gap-3 px-4 py-3 transition-colors hover:bg-white/[0.03]">
+                      <div className={cn("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", LEVEL_COLOR[a.level])}>
+                        <ShieldAlert className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-semibold text-slate-100">{a.title}</p>
+                        <p className="truncate text-[11px] text-slate-500">{a.detail}</p>
+                        <p className="mt-0.5 text-[10px] text-slate-600">{a.time}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
                 <Link
                   to="/history"
                   onClick={() => setAlertsOpen(false)}

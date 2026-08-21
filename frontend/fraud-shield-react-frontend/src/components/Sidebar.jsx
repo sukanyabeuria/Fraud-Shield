@@ -9,7 +9,6 @@ import {
   X,
 } from "lucide-react";
 import Logo from "./Logo";
-import BackendStatus from "./BackendStatus";
 import { cn } from "../utils/cn";
 import { useAuth } from "../context/AuthContext";
 
@@ -97,9 +96,19 @@ export default function Sidebar({ open, onClose }) {
           ))}
         </nav>
 
-        {/* Live backend status — real GET /api/v1/health poll */}
-        <BackendStatus />
-
+        {/* Model status card — future: live health from the ML service */}
+        <div className="mx-3 mb-3 rounded-xl border border-white/8 bg-gradient-to-br from-sky-500/10 to-transparent p-3.5">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+            </span>
+            <p className="text-xs font-semibold text-slate-200">Model Online</p>
+          </div>
+          <p className="mt-1.5 text-[11px] leading-relaxed text-slate-500">
+            mock-xgboost-v2.4 · 96.4% accuracy · 148 ms avg
+          </p>
+        </div>
 
         <div className="border-t border-white/8 p-3">
           <div className="mb-2 flex items-center gap-3 rounded-xl px-2 py-2">

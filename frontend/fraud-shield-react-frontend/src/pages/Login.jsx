@@ -4,7 +4,6 @@ import { AlertCircle, Eye, EyeOff, Lock, LogIn, Mail } from "lucide-react";
 import AuthShell from "../components/AuthShell";
 import Input, { Checkbox } from "../components/Input";
 import Button from "../components/Button";
-import BackendStatus from "../components/BackendStatus";
 import { useAuth } from "../context/AuthContext";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -42,12 +41,11 @@ export default function Login() {
     if (!validate()) return;
     setLoading(true);
     try {
-      // Real backend call — see src/context/AuthContext.jsx
+      // FUTURE: POST /api/auth/login → store JWT
       await login({ email: form.email, password: form.password, remember });
       navigate("/dashboard", { replace: true });
-    } catch (err) {
-      // Surface the REAL backend error, never a generic success-looking state.
-      setNotice(err?.message ?? "Unable to sign in. Please try again.");
+    } catch {
+      setNotice("Unable to sign in. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -122,6 +120,21 @@ export default function Login() {
           </Button>
         </form>
 
+        <div className="my-6 flex items-center gap-3">
+          <span className="h-px flex-1 bg-white/10" />
+          <span className="text-[11px] uppercase tracking-wider text-slate-600">Demo access</span>
+          <span className="h-px flex-1 bg-white/10" />
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setForm({ email: "analyst@fraudshield.io", password: "shield123" })}
+          className="w-full rounded-xl border border-dashed border-white/12 bg-white/[0.02] px-4 py-3 text-left text-xs text-slate-400 transition-colors hover:border-sky-400/40 hover:text-slate-200"
+        >
+          <span className="font-semibold text-sky-300">Fill demo credentials</span> ·
+          analyst@fraudshield.io / shield123
+        </button>
+
         <p className="mt-6 text-center text-sm text-slate-400">
           Don&apos;t have an account?{" "}
           <Link to="/signup" className="font-semibold text-sky-300 hover:text-sky-200">
@@ -130,9 +143,9 @@ export default function Login() {
         </p>
       </div>
 
-      <div className="mt-5">
-        <BackendStatus className="mx-0" />
-      </div>
+      <p className="mt-5 text-center text-[11px] text-slate-600">
+        Protected by mock 2-factor authentication · Frontend demo build
+      </p>
     </AuthShell>
   );
 }

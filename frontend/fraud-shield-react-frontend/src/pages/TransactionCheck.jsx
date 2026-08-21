@@ -12,35 +12,17 @@ import {
   RefreshCw,
   ScanSearch,
   Smartphone,
+  Sparkles,
   Wallet,
 } from "lucide-react";
 import Input, { Checkbox, Select } from "../components/Input";
 import Button from "../components/Button";
 import Loading from "../components/Loading";
 import ChartCard from "../components/ChartCard";
-import ErrorState from "../components/ErrorState";
-import {
-  DEVICE_TYPES,
-  LOCATIONS,
-  MERCHANT_CATEGORIES,
-  TRANSACTION_TYPES,
-} from "../constants/transactionOptions";
-import { analyzeTransaction } from "../services/fraudApi";
-import { ERROR_KIND } from "../services/httpClient";
+import { DEVICE_TYPES, LOCATIONS, TRANSACTION_TYPES } from "../data/mockData";
+import { predictFraud } from "../services/fraudApi";
 
-/**
- * Generate a genuinely unique client-side reference for this submission.
- * Uses crypto.randomUUID (not Math.random) — this is a real identifier for the
- * transaction the user is about to submit, not fabricated application data.
- * The backend may override it with its own ID in the response.
- */
-const genId = () => {
-  const uuid =
-    typeof crypto !== "undefined" && crypto.randomUUID
-      ? crypto.randomUUID()
-      : String(Date.now());
-  return `TXN-${uuid.replace(/-/g, "").slice(0, 10).toUpperCase()}`;
-};
+const genId = () => `TXN-${Math.floor(1000000 + Math.random() * 8999999)}`;
 
 const EMPTY = {
   transactionId: genId(),
@@ -61,12 +43,58 @@ const EMPTY = {
   newRecipient: false,
 };
 
+const SAMPLE_HIGH_RISK = {
+  ...EMPTY,
+  transactionId: genId(),
+  amount: "487500",
+  transactionType: "Crypto Exchange",
+  accountAge: "2",
+  location: "Unknown / VPN",
+  deviceType: "API / Bot",
+  transactionTime: "03:14",
+  transactionCount: "14",
+  previousAmount: "4200",
+  merchantCategory: "Crypto",
+  accountBalance: "512000",
+  ipAddress: "185.220.101.44",
+  cardPresent: false,
+  internationalTransfer: true,
+  newRecipient: true,
+};
+
+const SAMPLE_SAFE = {
+  ...EMPTY,
+  transactionId: genId(),
+  amount: "3200",
+  transactionType: "Payment",
+  accountAge: "48",
+  location: "Mumbai, IN",
+  deviceType: "Mobile App",
+  transactionTime: "13:20",
+  transactionCount: "3",
+  previousAmount: "2800",
+  merchantCategory: "Retail",
+  accountBalance: "184000",
+  ipAddress: "49.36.212.10",
+  cardPresent: true,
+};
+
+const MERCHANT_CATEGORIES = [
+  "Retail",
+  "Travel",
+  "Electronics",
+  "Food & Delivery",
+  "Crypto",
+  "Gaming",
+  "Luxury Goods",
+  "Utilities",
+];
+
 export default function TransactionCheck() {
   const navigate = useNavigate();
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [analyzing, setAnalyzing] = useState(false);
-  const [submitError, setSubmitError] = useState(null);
 
   const set = (key) => (e) => {
     const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
@@ -90,50 +118,31 @@ export default function TransactionCheck() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitError(null);
     if (!validate()) return;
     setAnalyzing(true);
 
     /**
-     * REAL ML CALL
+     * MOCK ML CALL
      * ------------
-     * POST /api/v1/transactions/analyze
-     *   → FastAPI validates the payload
-     *   → XGBoost model scores it
-     *   → SHAP produces the attributions
-     *   → the result is persisted in PostgreSQL by the backend
-     *   → the real response is rendered on the Fraud Result page.
+     * `predictFraud` currently runs local rule-based logic in
+     * `src/services/fraudApi.js`. Swap that function's body for a real
+     * `POST /api/predict` request and this page needs no changes.
      */
-    try {
-      const result = await analyzeTransaction(form);
-      navigate("/fraud-result", { state: { result } });
-    } catch (err) {
-      setSubmitError(err);
-      // Surface field-level validation errors coming back from FastAPI (422).
-      if (err?.kind === ERROR_KIND.VALIDATION && Array.isArray(err.details)) {
-        const fieldErrors = {};
-        err.details.forEach((d) => {
-          const loc = Array.isArray(d.loc) ? d.loc.filter((p) => p !== "body") : [];
-          const key = loc[loc.length - 1];
-          if (key) fieldErrors[key] = d.msg;
-        });
-        if (Object.keys(fieldErrors).length) setErrors((prev) => ({ ...prev, ...fieldErrors }));
-      }
-    } finally {
-      setAnalyzing(false);
-    }
+    const result = await predictFraud(form);
+    setAnalyzing(false);
+    navigate("/fraud-result", { state: { result } });
   };
 
   if (analyzing) {
     return (
       <div className="glass-card animate-fade-up">
         <Loading
-          title="Analyzing transaction…"
-          message={`Sending ${form.transactionId} to the Fraud-Shield ML service`}
+          title="Running fraud analysis…"
+          message={`Scoring ${form.transactionId} with mock-xgboost-v2.4`}
           steps={[
-            "Posting transaction to the backend",
-            "Validating the request payload",
-            "Running the fraud detection model",
+            "Normalising transaction features",
+            "Querying behavioural profile",
+            "Running gradient-boosted classifier",
             "Generating Explainable AI attributions",
           ]}
         />
@@ -157,20 +166,15 @@ export default function TransactionCheck() {
             </p>
           </div>
         </div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" size="sm" onClick={() => setForm({ ...SAMPLE_SAFE, transactionId: genId() })}>
+            Load safe sample
+          </Button>
+          <Button variant="secondary" size="sm" icon={Sparkles} onClick={() => setForm({ ...SAMPLE_HIGH_RISK, transactionId: genId() })}>
+            Load risky sample
+          </Button>
+        </div>
       </section>
-
-      {/* Real backend error — no fabricated result is ever shown */}
-      {submitError && (
-        <ErrorState
-          error={submitError}
-          onRetry={() => setSubmitError(null)}
-          title={
-            submitError.kind === ERROR_KIND.VALIDATION
-              ? "The backend rejected this transaction"
-              : undefined
-          }
-        />
-      )}
 
       <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <div className="space-y-4 xl:col-span-2">
@@ -353,26 +357,17 @@ export default function TransactionCheck() {
               ))}
             </dl>
 
-            <Button
-              type="submit"
-              size="lg"
-              icon={ScanSearch}
-              className="mt-5 w-full"
-              loading={analyzing}
-              disabled={analyzing}
-            >
-              {analyzing ? "Analyzing transaction…" : "Check Transaction"}
+            <Button type="submit" size="lg" icon={ScanSearch} className="mt-5 w-full">
+              Check Transaction
             </Button>
             <Button
               type="button"
               variant="ghost"
               size="sm"
               className="mt-2 w-full"
-              disabled={analyzing}
               onClick={() => {
                 setForm({ ...EMPTY, transactionId: genId() });
                 setErrors({});
-                setSubmitError(null);
               }}
             >
               Reset form
@@ -404,9 +399,8 @@ export default function TransactionCheck() {
                 </li>
               ))}
             </ol>
-            <p className="mt-4 rounded-lg border border-sky-400/20 bg-sky-400/[0.07] px-3 py-2 text-[11px] text-sky-300/90">
-              Live mode: every prediction is produced by the Fraud-Shield backend and its trained
-              model. No results are generated in the browser.
+            <p className="mt-4 rounded-lg border border-amber-400/20 bg-amber-400/[0.07] px-3 py-2 text-[11px] text-amber-300/90">
+              Demo mode: predictions use mock rule-based logic, not a trained model.
             </p>
           </div>
         </aside>

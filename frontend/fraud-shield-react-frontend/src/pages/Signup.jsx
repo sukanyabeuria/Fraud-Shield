@@ -82,11 +82,11 @@ export default function Signup() {
     }
     setLoading(true);
     try {
-      // Real backend call — see src/context/AuthContext.jsx
+      // FUTURE: POST /api/auth/register
       await signup(form);
       navigate("/dashboard", { replace: true });
-    } catch (err) {
-      setNotice(err?.message ?? "Unable to create the account. Please try again.");
+    } catch {
+      setNotice("Unable to create the account. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -224,7 +224,7 @@ export default function Signup() {
       </div>
 
       <p className="mt-5 text-center text-[11px] text-slate-600">
-        Accounts are created through the Fraud-Shield backend API.
+        Accounts are mock-only in this demo build — no data leaves your browser.
       </p>
     </AuthShell>
   );

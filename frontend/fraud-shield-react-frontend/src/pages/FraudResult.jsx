@@ -17,7 +17,7 @@ import RiskBadge from "../components/RiskBadge";
 import Button from "../components/Button";
 import ChartCard, { ChartTooltip } from "../components/ChartCard";
 import { cn } from "../utils/cn";
-import { formatDateTime } from "../utils/format";
+import { formatDateTime } from "../data/mockData";
 
 const VERDICT_THEME = {
   Fraudulent: {
@@ -56,9 +56,6 @@ export default function FraudResult() {
   const theme = VERDICT_THEME[result.verdict] ?? VERDICT_THEME.Suspicious;
   const VerdictIcon = theme.icon;
   const s = result.summary ?? {};
-  // Prefer the backend's recommended_action; only describe the verdict generically
-  // if the backend did not send one.
-  const recommendedAction = result.recommendedAction ?? theme.action;
 
   const summaryRows = [
     ["Transaction ID", result.transactionId],
@@ -89,8 +86,8 @@ export default function FraudResult() {
                 <h2 className={cn("text-2xl font-bold", theme.title)}>{result.verdict}</h2>
                 <RiskBadge value={result.riskLevel} size="md" />
               </div>
-              <p className="mt-1 break-all font-mono text-xs text-slate-400">{result.transactionId}</p>
-              <p className="mt-2 max-w-xl text-sm text-slate-300">{recommendedAction}</p>
+              <p className="mt-1 font-mono text-xs text-slate-400">{result.transactionId}</p>
+              <p className="mt-2 max-w-xl text-sm text-slate-300">{theme.action}</p>
             </div>
           </div>
 
@@ -127,57 +124,27 @@ export default function FraudResult() {
           <div className="mt-5 grid w-full grid-cols-2 gap-3">
             <div className="rounded-xl border border-white/8 bg-white/[0.03] p-3 text-center">
               <BadgeCheck className="mx-auto mb-1 h-4 w-4 text-sky-300" />
-              <p className="text-base font-bold text-white">
-                {result.confidence !== null && result.confidence !== undefined
-                  ? `${result.confidence}%`
-                  : "—"}
-              </p>
+              <p className="text-base font-bold text-white">{result.confidence}%</p>
               <p className="text-[10px] uppercase tracking-wider text-slate-500">Confidence</p>
             </div>
             <div className="rounded-xl border border-white/8 bg-white/[0.03] p-3 text-center">
               <Clock className="mx-auto mb-1 h-4 w-4 text-sky-300" />
-              <p className="text-base font-bold text-white">
-                {result.inferenceMs !== null && result.inferenceMs !== undefined
-                  ? `${Math.round(result.inferenceMs)} ms`
-                  : "—"}
-              </p>
+              <p className="text-base font-bold text-white">148 ms</p>
               <p className="text-[10px] uppercase tracking-wider text-slate-500">Inference</p>
             </div>
           </div>
 
-          {result.fraudProbability !== null && result.fraudProbability !== undefined && (
-            <p className="mt-4 text-center text-xs text-slate-400">
-              Fraud probability:{" "}
-              <strong className="text-white">
-                {(Number(result.fraudProbability) * (Number(result.fraudProbability) <= 1 ? 100 : 1)).toFixed(2)}%
-              </strong>
-            </p>
-          )}
-
-          <p className="mt-2 text-center text-[11px] text-slate-600">
-            {[result.modelVersion && `Model ${result.modelVersion}`,
-              result.evaluatedAt && formatDateTime(result.evaluatedAt)]
-              .filter(Boolean)
-              .join(" · ") || "Result returned by the Fraud-Shield backend"}
+          <p className="mt-4 text-center text-[11px] text-slate-600">
+            Model {result.modelVersion} · {formatDateTime(result.evaluatedAt)}
           </p>
         </ChartCard>
 
         {/* ---------------- Explainable AI ---------------- */}
         <ChartCard
           title="Why was this decision made?"
-          subtitle="Explainable AI · feature attributions returned by the backend"
+          subtitle="Explainable AI · feature attributions (mock SHAP output)"
           className="xl:col-span-2"
         >
-          {result.explanationText && (
-            <p className="mb-4 rounded-xl border border-white/8 bg-white/[0.03] p-3.5 text-xs leading-relaxed text-slate-300">
-              {result.explanationText}
-            </p>
-          )}
-          {result.reasons.length === 0 && (
-            <p className="rounded-xl border border-white/8 bg-white/[0.03] p-4 text-xs text-slate-400">
-              The backend did not return feature attributions for this transaction.
-            </p>
-          )}
           <ul className="space-y-3">
             {result.reasons.map((r, i) => (
               <li
@@ -213,7 +180,7 @@ export default function FraudResult() {
             ))}
           </ul>
 
-          <div className={cn("mt-5 h-[220px] w-full", result.factors.length === 0 && "hidden")}>
+          <div className="mt-5 h-[220px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={result.factors}
@@ -305,13 +272,13 @@ export default function FraudResult() {
             <p className="flex items-center gap-2 text-xs font-semibold text-slate-200">
               <BrainCircuit className="h-4 w-4 text-sky-300" /> Recommended Action
             </p>
-            <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{recommendedAction}</p>
+            <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{theme.action}</p>
           </div>
 
           <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-slate-600">
             <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            Risk score, verdict and feature attributions are produced by the Fraud-Shield ML service
-            and returned by the backend.
+            Explanations shown here are mock placeholders. They will be produced by the SHAP-based
+            Explainable AI service once the ML backend is connected.
           </p>
         </ChartCard>
       </section>

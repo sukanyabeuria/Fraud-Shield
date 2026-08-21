@@ -1,14 +1,17 @@
-import { useCallback } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  Activity,
   AlertTriangle,
   ArrowRight,
   CheckCircle2,
   Gauge,
   Layers,
   ScanSearch,
+  ShieldAlert,
   ShieldX,
   Timer,
+  Zap,
 } from "lucide-react";
 import {
   Area,
@@ -29,42 +32,23 @@ import ChartCard, { ChartTooltip } from "../components/ChartCard";
 import TransactionTable from "../components/TransactionTable";
 import RiskScore from "../components/RiskScore";
 import Button from "../components/Button";
-import ErrorState, { EmptyState } from "../components/ErrorState";
-import { Skeleton } from "../components/Loading";
 import { useAuth } from "../context/AuthContext";
-import { useApi } from "../hooks/useApi";
-import { getAnalytics, getDashboardSummary, getTransactions } from "../services/fraudApi";
-import { formatCurrency, formatNumber } from "../utils/format";
-
-const RISK_COLORS = { Low: "#22c55e", Medium: "#f59e0b", High: "#ef4444", Critical: "#b91c1c" };
-
-/** Render a metric only when the backend actually supplied it. */
-const show = (value, formatter = formatNumber) =>
-  value === null || value === undefined ? "—" : formatter(value);
+import {
+  dashboardStats,
+  formatCurrency,
+  mockTransactions,
+  riskDistribution,
+  transactionActivity,
+  volumeByType,
+} from "../data/mockData";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // GET /api/v1/analytics/summary
-  const summaryQuery = useApi(({ signal }) => getDashboardSummary({ signal }), []);
-  // GET /api/v1/analytics  (charts)
-  const analyticsQuery = useApi(({ signal }) => getAnalytics({ signal }), []);
-  // GET /api/v1/transactions?limit=6
-  const recentQuery = useApi(
-    ({ signal }) => getTransactions({ limit: 6, pageSize: 6, sort: "date_desc" }, { signal }),
-    []
-  );
-
-  const stats = summaryQuery.data;
-  const charts = analyticsQuery.data;
-  const recent = recentQuery.data?.items ?? [];
-
-  const retryAll = useCallback(() => {
-    summaryQuery.refetch();
-    analyticsQuery.refetch();
-    recentQuery.refetch();
-  }, [summaryQuery, analyticsQuery, recentQuery]);
+  // FUTURE: const { data } = useQuery(getDashboardSummary)
+  const stats = dashboardStats;
+  const recent = useMemo(() => mockTransactions.slice(0, 6), []);
 
   const greeting = (() => {
     const h = new Date().getHours();
@@ -73,29 +57,6 @@ export default function Dashboard() {
     return "Good evening";
   })();
 
-  const pct = (part) =>
-    stats?.totalTransactions && part !== null && part !== undefined
-      ? (part / stats.totalTransactions) * 100
-      : undefined;
-
-  const riskDistribution = (charts?.riskDistribution ?? []).map((d) => ({
-    name: d.name ?? d.risk_level ?? d.label,
-    value: Number(d.value ?? d.count ?? 0),
-    color: d.color ?? RISK_COLORS[d.name ?? d.risk_level] ?? "#38bdf8",
-  }));
-
-  const activity = (charts?.transactionActivity ?? []).map((a) => ({
-    time: a.time ?? a.hour ?? a.bucket,
-    transactions: Number(a.transactions ?? a.total ?? 0),
-    flagged: Number(a.flagged ?? a.fraud ?? 0),
-  }));
-
-  const volumeByType = (charts?.volumeByType ?? []).map((v) => ({
-    type: v.type ?? v.transaction_type,
-    volume: Number(v.volume ?? v.count ?? 0),
-    fraud: Number(v.fraud ?? v.fraud_count ?? 0),
-  }));
-
   return (
     <div className="space-y-5">
       {/* ---------------- Welcome banner ---------------- */}
@@ -103,19 +64,19 @@ export default function Dashboard() {
         <div className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-sky-500/15 blur-3xl" />
         <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-white lg:text-3xl">
-              {greeting}, {user?.name?.split(" ")[0] ?? "Analyst"}
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-300">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+              Live monitoring active
+            </span>
+            <h2 className="mt-3 text-2xl font-bold text-white lg:text-3xl">
+              {greeting}, {user?.name?.split(" ")[0] ?? "Analyst"} 👋
             </h2>
             <p className="mt-1.5 max-w-2xl text-sm text-slate-400">
-              {summaryQuery.loading
-                ? "Loading live figures from the Fraud-Shield backend…"
-                : stats
-                  ? `The risk engine has scored ${show(stats.totalTransactions)} transactions${
-                      stats.blockedAmount !== null && stats.blockedAmount !== undefined
-                        ? ` and blocked ${formatCurrency(stats.blockedAmount)} in flagged value`
-                        : ""
-                    }.`
-                  : "Live transaction metrics are served by the Fraud-Shield backend."}
+              Your risk engine scanned{" "}
+              <strong className="text-slate-200">{stats.totalTransactions.toLocaleString("en-IN")}</strong>{" "}
+              transactions and blocked{" "}
+              <strong className="text-rose-300">{formatCurrency(stats.blockedAmount)}</strong> in
+              potentially fraudulent value this month.
             </p>
           </div>
           <div className="flex flex-col gap-2.5 sm:flex-row lg:shrink-0">
@@ -130,93 +91,67 @@ export default function Dashboard() {
       </section>
 
       {/* ---------------- KPI cards ---------------- */}
-      {summaryQuery.loading ? (
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {[0, 1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-[132px]" />
-          ))}
-        </section>
-      ) : summaryQuery.error ? (
-        <ErrorState error={summaryQuery.error} onRetry={retryAll} />
-      ) : (
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard
-            label="Total Transactions"
-            value={show(stats?.totalTransactions)}
-            icon={Layers}
-            tone="brand"
-            footer="from the backend database"
-          />
-          <StatCard
-            label="Safe Transactions"
-            value={show(stats?.safeTransactions)}
-            icon={CheckCircle2}
-            tone="success"
-            progress={pct(stats?.safeTransactions)}
-            footer="classified genuine"
-          />
-          <StatCard
-            label="Suspicious"
-            value={show(stats?.suspiciousTransactions)}
-            icon={AlertTriangle}
-            tone="warning"
-            progress={pct(stats?.suspiciousTransactions)}
-            footer="awaiting review"
-          />
-          <StatCard
-            label="Fraud Detected"
-            value={show(stats?.fraudDetected)}
-            icon={ShieldX}
-            tone="danger"
-            progress={pct(stats?.fraudDetected)}
-            footer="confirmed by the model"
-          />
-        </section>
-      )}
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          label="Total Transactions"
+          value={stats.totalTransactions.toLocaleString("en-IN")}
+          icon={Layers}
+          tone="brand"
+          change={8.2}
+        />
+        <StatCard
+          label="Safe Transactions"
+          value={stats.safeTransactions.toLocaleString("en-IN")}
+          icon={CheckCircle2}
+          tone="success"
+          change={4.6}
+          progress={(stats.safeTransactions / stats.totalTransactions) * 100}
+        />
+        <StatCard
+          label="Suspicious"
+          value={stats.suspiciousTransactions.toLocaleString("en-IN")}
+          icon={AlertTriangle}
+          tone="warning"
+          change={-2.4}
+          progress={(stats.suspiciousTransactions / stats.totalTransactions) * 100}
+        />
+        <StatCard
+          label="Fraud Detected"
+          value={stats.fraudDetected.toLocaleString("en-IN")}
+          icon={ShieldX}
+          tone="danger"
+          change={12.8}
+          progress={(stats.fraudDetected / stats.totalTransactions) * 100}
+        />
+      </section>
 
       {/* ---------------- Risk score + activity chart ---------------- */}
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <ChartCard
           title="Overall Risk Score"
-          subtitle="Average score reported by the backend"
+          subtitle="Weighted portfolio exposure"
           className="items-center"
           bodyClassName="flex flex-col items-center"
         >
-          {summaryQuery.loading ? (
-            <Skeleton className="h-[190px] w-[190px] rounded-full" />
-          ) : summaryQuery.error ? (
-            <ErrorState compact error={summaryQuery.error} onRetry={summaryQuery.refetch} />
-          ) : stats?.overallRiskScore === null || stats?.overallRiskScore === undefined ? (
-            <EmptyState
-              title="No risk score available"
-              hint="The analytics summary did not include an average risk score."
-            />
-          ) : (
-            <>
-              <RiskScore score={Math.round(stats.overallRiskScore)} size={190} />
-              <div className="mt-5 grid w-full grid-cols-2 gap-2 text-center">
-                <div className="rounded-xl border border-white/8 bg-white/[0.03] px-2 py-3">
-                  <Gauge className="mx-auto mb-1 h-4 w-4 text-sky-300" />
-                  <p className="text-sm font-bold text-white">
-                    {show(stats.detectionAccuracy, (v) => `${v}%`)}
-                  </p>
-                  <p className="text-[10px] uppercase tracking-wider text-slate-500">Accuracy</p>
-                </div>
-                <div className="rounded-xl border border-white/8 bg-white/[0.03] px-2 py-3">
-                  <Timer className="mx-auto mb-1 h-4 w-4 text-sky-300" />
-                  <p className="text-sm font-bold text-white">
-                    {show(stats.avgResponseMs, (v) => `${Math.round(v)}ms`)}
-                  </p>
-                  <p className="text-[10px] uppercase tracking-wider text-slate-500">Avg Latency</p>
-                </div>
+          <RiskScore score={stats.overallRiskScore} size={190} />
+          <div className="mt-5 grid w-full grid-cols-3 gap-2 text-center">
+            {[
+              { label: "Accuracy", value: `${stats.detectionAccuracy}%`, icon: Gauge },
+              { label: "Avg Latency", value: `${stats.avgResponseMs}ms`, icon: Timer },
+              { label: "Models", value: "3 live", icon: Zap },
+            ].map(({ label, value, icon: Icon }) => (
+              <div key={label} className="rounded-xl border border-white/8 bg-white/[0.03] px-2 py-3">
+                <Icon className="mx-auto mb-1 h-4 w-4 text-sky-300" />
+                <p className="text-sm font-bold text-white">{value}</p>
+                <p className="text-[10px] uppercase tracking-wider text-slate-500">{label}</p>
               </div>
-            </>
-          )}
+            ))}
+          </div>
         </ChartCard>
 
         <ChartCard
           title="Transaction Activity"
-          subtitle="Volume vs flagged transactions"
+          subtitle="Volume vs flagged transactions (last 24 h)"
           className="xl:col-span-2"
           action={
             <div className="flex items-center gap-3 text-[11px] text-slate-400">
@@ -230,82 +165,124 @@ export default function Dashboard() {
           }
         >
           <div className="h-[280px] w-full">
-            {analyticsQuery.loading ? (
-              <Skeleton className="h-full w-full" />
-            ) : analyticsQuery.error ? (
-              <ErrorState error={analyticsQuery.error} onRetry={analyticsQuery.refetch} />
-            ) : activity.length === 0 ? (
-              <EmptyState title="No activity data returned" />
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={activity} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
-                  <defs>
-                    <linearGradient id="gradTx" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#38bdf8" stopOpacity={0.45} />
-                      <stop offset="100%" stopColor="#38bdf8" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="gradFlag" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#f43f5e" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="time" stroke="#475569" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#475569" fontSize={11} tickLine={false} axisLine={false} />
-                  <Tooltip content={<ChartTooltip />} cursor={{ stroke: "#38bdf8", strokeOpacity: 0.2 }} />
-                  <Area type="monotone" dataKey="transactions" stroke="#38bdf8" strokeWidth={2} fill="url(#gradTx)" name="Transactions" />
-                  <Area type="monotone" dataKey="flagged" stroke="#f43f5e" strokeWidth={2} fill="url(#gradFlag)" name="Flagged" />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={transactionActivity} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
+                <defs>
+                  <linearGradient id="gradTx" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#38bdf8" stopOpacity={0.45} />
+                    <stop offset="100%" stopColor="#38bdf8" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gradFlag" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.4} />
+                    <stop offset="100%" stopColor="#f43f5e" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="time" stroke="#475569" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="#475569" fontSize={11} tickLine={false} axisLine={false} />
+                <Tooltip content={<ChartTooltip />} cursor={{ stroke: "#38bdf8", strokeOpacity: 0.2 }} />
+                <Area
+                  type="monotone"
+                  dataKey="transactions"
+                  stroke="#38bdf8"
+                  strokeWidth={2}
+                  fill="url(#gradTx)"
+                  name="Transactions"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="flagged"
+                  stroke="#f43f5e"
+                  strokeWidth={2}
+                  fill="url(#gradFlag)"
+                  name="Flagged"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </ChartCard>
       </section>
 
-      {/* ---------------- Distribution + volume ---------------- */}
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      {/* ---------------- Distribution + detection stats ---------------- */}
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
         <ChartCard title="Risk Distribution" subtitle="Share of transactions by risk band">
           <div className="h-[260px] w-full">
-            {analyticsQuery.loading ? (
-              <Skeleton className="h-full w-full" />
-            ) : analyticsQuery.error ? (
-              <ErrorState compact error={analyticsQuery.error} onRetry={analyticsQuery.refetch} />
-            ) : riskDistribution.length === 0 ? (
-              <EmptyState title="No risk distribution returned" />
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={riskDistribution} dataKey="value" nameKey="name" innerRadius={62} outerRadius={92} paddingAngle={3} stroke="none">
-                    {riskDistribution.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<ChartTooltip />} />
-                  <Legend verticalAlign="bottom" iconType="circle" wrapperStyle={{ fontSize: 11, color: "#94a3b8" }} />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={riskDistribution}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={62}
+                  outerRadius={92}
+                  paddingAngle={3}
+                  stroke="none"
+                >
+                  {riskDistribution.map((entry) => (
+                    <Cell key={entry.name} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<ChartTooltip />} />
+                <Legend
+                  verticalAlign="bottom"
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: 11, color: "#94a3b8" }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </ChartCard>
 
         <ChartCard title="Volume by Channel" subtitle="Transactions vs confirmed fraud">
           <div className="h-[260px] w-full">
-            {analyticsQuery.loading ? (
-              <Skeleton className="h-full w-full" />
-            ) : analyticsQuery.error ? (
-              <ErrorState compact error={analyticsQuery.error} onRetry={analyticsQuery.refetch} />
-            ) : volumeByType.length === 0 ? (
-              <EmptyState title="No channel data returned" />
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={volumeByType} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
-                  <XAxis dataKey="type" stroke="#475569" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#475569" fontSize={11} tickLine={false} axisLine={false} />
-                  <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-                  <Bar dataKey="volume" name="Volume" fill="#0ea5e9" radius={[6, 6, 0, 0]} maxBarSize={26} />
-                  <Bar dataKey="fraud" name="Fraud" fill="#f43f5e" radius={[6, 6, 0, 0]} maxBarSize={26} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={volumeByType} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
+                <XAxis dataKey="type" stroke="#475569" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="#475569" fontSize={11} tickLine={false} axisLine={false} />
+                <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+                <Bar dataKey="volume" name="Volume" fill="#0ea5e9" radius={[6, 6, 0, 0]} maxBarSize={26} />
+                <Bar dataKey="fraud" name="Fraud" fill="#f43f5e" radius={[6, 6, 0, 0]} maxBarSize={26} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </ChartCard>
+
+        <ChartCard
+          title="Fraud Detection Statistics"
+          subtitle="Model performance snapshot"
+          className="lg:col-span-2 xl:col-span-1"
+        >
+          <ul className="space-y-3">
+            {[
+              { label: "Detection Accuracy", value: 96.4, color: "bg-emerald-400", suffix: "%" },
+              { label: "Precision", value: 92.1, color: "bg-sky-400", suffix: "%" },
+              { label: "Recall", value: 89.7, color: "bg-violet-400", suffix: "%" },
+              { label: "False Positive Rate", value: 3.6, color: "bg-amber-400", suffix: "%" },
+            ].map((m) => (
+              <li key={m.label}>
+                <div className="mb-1.5 flex items-center justify-between text-xs">
+                  <span className="text-slate-400">{m.label}</span>
+                  <span className="font-semibold text-white">
+                    {m.value}
+                    {m.suffix}
+                  </span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                  <div className={`h-full rounded-full ${m.color}`} style={{ width: `${m.value}%` }} />
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <div className="rounded-xl border border-white/8 bg-white/[0.03] p-3">
+              <ShieldAlert className="mb-1.5 h-4 w-4 text-rose-300" />
+              <p className="text-lg font-bold text-white">412</p>
+              <p className="text-[11px] text-slate-500">Frauds blocked</p>
+            </div>
+            <div className="rounded-xl border border-white/8 bg-white/[0.03] p-3">
+              <Activity className="mb-1.5 h-4 w-4 text-sky-300" />
+              <p className="text-lg font-bold text-white">148 ms</p>
+              <p className="text-[11px] text-slate-500">Avg inference</p>
+            </div>
           </div>
         </ChartCard>
       </section>
@@ -320,20 +297,10 @@ export default function Dashboard() {
           </Button>
         }
       >
-        {recentQuery.loading ? (
-          <div className="space-y-2">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </div>
-        ) : recentQuery.error ? (
-          <ErrorState error={recentQuery.error} onRetry={recentQuery.refetch} />
-        ) : (
-          <TransactionTable
-            transactions={recent}
-            onView={(t) => navigate("/history", { state: { focusId: t.id } })}
-          />
-        )}
+        <TransactionTable
+          transactions={recent}
+          onView={(t) => navigate("/history", { state: { focusId: t.id } })}
+        />
       </ChartCard>
     </div>
   );
