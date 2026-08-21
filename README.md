@@ -1,27 +1,31 @@
 # 🛡️ Fraud-Shield
 
-A full-stack **AI-powered financial fraud detection and explainability platform** designed to identify suspicious transactions in real time and explain the key factors behind each fraud decision.
+A full-stack **AI-powered financial fraud detection and explainability platform** designed to identify suspicious financial transactions in real time and explain the key factors behind each fraud decision.
 
-> **Current Stage:** Backend API + Authentication + Fraud Detection + Database Integration — Frontend-to-backend integration pending
+> **Current Stage:** Full-stack integration complete — Backend + Authentication + PostgreSQL + ML/XAI + React Frontend integration verified locally. Production deployment is the next phase.
 
 ---
 
 # 📌 About the Project
 
-**Fraud-Shield** is designed to detect potentially fraudulent financial transactions using a combination of:
+**Fraud-Shield** combines:
 
 * Machine Learning
 * Explainable AI (XAI)
 * Rule-based fraud detection
 * Hybrid risk scoring
-* REST APIs
-* PostgreSQL database
+* FastAPI REST APIs
+* PostgreSQL persistence
 * JWT-based authentication
-* Interactive monitoring dashboard
+* React/Vite frontend
+* Transaction history
+* Risk analytics
+* Profile and security settings
+* Live alert feed
 
-The system evaluates transaction characteristics such as transaction amount, international transfer status, recipient history, device information and transaction patterns to generate a fraud risk assessment.
+The system evaluates transaction characteristics such as transaction amount, international transfer status, recipient history, device information, location and transaction patterns to generate a fraud risk assessment.
 
-The platform not only predicts whether a transaction is fraudulent but also provides **explanations for the prediction**, helping users and analysts understand why a transaction was considered risky.
+The platform does not only predict whether a transaction is fraudulent; it also provides risk factors, triggered rules, confidence information and recommended actions to make the decision easier to understand.
 
 ---
 
@@ -29,47 +33,67 @@ The platform not only predicts whether a transaction is fraudulent but also prov
 
 ## 🔐 Authentication
 
-Backend authentication has now been implemented using:
+Authentication is implemented end-to-end between the React frontend and FastAPI backend.
 
+Implemented features:
+
+* User registration
 * Login API
-* Email and password validation
+* Email validation
 * Password hashing
 * JWT access-token generation
-* User lookup through the database
+* Database-backed user lookup
 * Invalid credential handling
-* Auth request/response schemas
-* User ID, email and role included in the JWT/login response
+* Frontend authentication context
+* Frontend session persistence
+* Authenticated API requests
+* Logout
+* User identity and role information
 
-### Authentication Endpoint
+### Registration
+
+```text
+POST /api/v1/auth/register
+```
+
+Example request:
+
+```json
+{
+  "full_name": "Fraud Shield Test",
+  "email": "fraudshield.test@example.com",
+  "password": "TestPass123!"
+}
+```
+
+### Login
 
 ```text
 POST /api/v1/auth/login
 ```
 
-### Login Request
+Example request:
 
 ```json
 {
-  "email": "demo@fraudshield.com",
-  "password": "Demo@123"
+  "email": "fraudshield.test@example.com",
+  "password": "TestPass123!"
 }
 ```
 
-### Successful Response
+Successful authentication returns:
 
 ```json
 {
   "access_token": "<JWT_TOKEN>",
   "token_type": "bearer",
-  "user_id": 1,
-  "email": "demo@fraudshield.com",
+  "user_id": 2,
+  "email": "fraudshield.test@example.com",
   "role": "user"
 }
 ```
 
-### Invalid Credentials
-
-The API correctly returns:
+Invalid credentials correctly return:
 
 ```http
 401 Unauthorized
@@ -83,29 +107,82 @@ with:
 }
 ```
 
-### Authentication Schemas
-
-Authentication request and response models are defined in:
+Authentication schemas are defined in:
 
 ```text
 backend/app/schemas/auth.py
 ```
 
-The backend uses:
+Authentication utilities are implemented in:
 
-* `pwdlib` for password hashing
-* `PyJWT` for JWT token generation
-* `pydantic` / `EmailStr` for request validation
+```text
+backend/app/api/v1/auth_utils.py
+```
 
-> **Frontend authentication integration is not yet completed.** The React frontend still needs to call the authentication API and manage the returned JWT token.
+The frontend authentication flow is handled through:
+
+```text
+frontend/fraud-shield-react-frontend (2)/src/context/AuthContext.jsx
+```
+
+---
+
+# 👤 Profile & Settings
+
+Profile and settings integration is implemented between the React frontend and backend.
+
+Implemented functionality includes:
+
+### Notification Settings
+
+* Fraud alerts
+* High-risk only
+* Weekly digest
+* Email alerts
+* SMS alerts
+
+### Security Settings
+
+* Two-factor authentication
+* Login alerts
+* Automatic blocking
+* Session timeout
+
+### Backend Endpoints
+
+```text
+GET   /api/v1/auth/settings
+PATCH /api/v1/auth/settings
+GET   /api/v1/auth/sessions
+```
+
+Settings are stored in PostgreSQL and are user-specific.
+
+The persistence flow has been verified:
+
+```text
+Change setting
+      ↓
+Save
+      ↓
+PATCH backend API
+      ↓
+PostgreSQL
+      ↓
+Refresh application
+      ↓
+GET settings
+      ↓
+Saved value restored
+```
 
 ---
 
 # 📊 Fraud Detection Dashboard
 
-The dashboard is designed to provide an overview of transaction activity and fraud risk.
+The dashboard consumes backend APIs for real transaction and analytics data.
 
-Features include:
+Supported dashboard information includes:
 
 * Total transactions
 * Safe transactions
@@ -117,33 +194,15 @@ Features include:
 * Risk distribution
 * Transaction activity
 * High-risk transaction monitoring
+* Critical-risk transaction monitoring
 
-The backend now provides analytics APIs to support dashboard data.
-
-### Analytics Endpoints
-
-```text
-GET /api/v1/analytics/summary
-GET /api/v1/analytics
-```
-
-The analytics layer uses persisted transaction data to calculate metrics such as:
-
-* Total transactions
-* Fraud/blocked transactions
-* Suspicious transactions
-* Safe transactions
-* Average risk score
-* Average prediction confidence
-* Total transaction amount
-* High-risk transaction count
-* Critical-risk transaction count
+Analytics are calculated from persisted PostgreSQL transaction data.
 
 ---
 
 # 💳 Real-Time Transaction Analysis
 
-Users can submit transaction information for fraud evaluation.
+Users can submit transaction information through the React frontend.
 
 ### Transaction Inputs
 
@@ -152,6 +211,7 @@ Users can submit transaction information for fraud evaluation.
 * Currency
 * Transaction type
 * Merchant category
+* Merchant name
 * Location
 * IP address
 * Device type
@@ -160,7 +220,13 @@ Users can submit transaction information for fraud evaluation.
 * Transaction frequency
 * New device status
 
-The backend processes the transaction using the trained ML model and deterministic fraud rules and generates:
+### Endpoint
+
+```text
+POST /api/v1/transactions/analyze
+```
+
+The backend generates:
 
 * Risk score
 * Risk level
@@ -171,14 +237,9 @@ The backend processes the transaction using the trained ML model and determinist
 * Recommended action
 * Model version
 * Evaluation timestamp
+* Explainability information
 
-### Endpoint
-
-```text
-POST /api/v1/transactions/analyze
-```
-
-### Example Result
+Example:
 
 ```text
 Risk Score: 83
@@ -190,31 +251,24 @@ Recommended Action:
 Block transaction and initiate manual review
 ```
 
+The React Transaction Check screen is connected to the real API.
+
+The Fraud Result screen renders the returned transaction analysis rather than relying on fabricated prediction data.
+
 ---
 
 # 🤖 Machine Learning Fraud Detection
 
-Fraud-Shield uses an **XGBoost-based machine learning model** for transaction risk prediction.
+Fraud-Shield uses an **XGBoost-based machine learning model**.
 
 The ML pipeline contains:
 
-* Feature engineering
-* Feature transformation
-* XGBoost model
-* Model loading and prediction
-* Model metadata
-* Fraud probability estimation
-
-### ML Components
-
 ```text
 backend/ml/
-│
 ├── feature_engineering.py
 ├── model_loader.py
 ├── predictor.py
 ├── train_model.py
-│
 └── artifacts/
     ├── xgboost_model.pkl
     ├── feature_engineer.pkl
@@ -222,9 +276,11 @@ backend/ml/
     └── model_metadata.json
 ```
 
-The trained model produces a fraud probability that is combined with rule-based signals through the hybrid scoring layer to generate the final risk assessment.
+The trained model is loaded through `FraudPredictor`.
 
-The API's ML service delegates prediction to the trained `FraudPredictor`, which loads the configured XGBoost model and supporting artifacts rather than using hard-coded prediction responses.
+The ML service does not use hard-coded fraud predictions.
+
+The generated fraud probability is combined with deterministic fraud rules through the hybrid scoring layer.
 
 ---
 
@@ -232,13 +288,7 @@ The API's ML service delegates prediction to the trained `FraudPredictor`, which
 
 Fraud-Shield uses **SHAP (SHapley Additive exPlanations)** to explain individual fraud predictions.
 
-Instead of only displaying:
-
-> "Transaction is fraudulent"
-
-the system identifies the features that contributed to the prediction.
-
-### Example Risk Factors
+Example risk factors:
 
 ```text
 is_international     → increases risk
@@ -248,57 +298,12 @@ is_new_device        → increases risk
 amount               → increases risk
 ```
 
-Each explanation contains:
+Each explanation can contain:
 
 * Feature name
 * Feature impact
 * Risk direction
 * Human-readable explanation
-
-This makes the ML prediction more transparent and easier for fraud analysts to understand.
-
----
-
-# ⚙️ Hybrid Fraud Detection Engine
-
-Fraud-Shield combines **Machine Learning and deterministic fraud rules**.
-
-```text
-Transaction
-     │
-     ▼
-Feature Engineering
-     │
-     ├───────────────┐
-     ▼               ▼
-XGBoost Model    Rule Engine
-     │               │
-     │               ├── NEW_RECIPIENT
-     │               ├── INTERNATIONAL_TRANSFER
-     │               ├── NEW_DEVICE
-     │               └── HIGH_FREQUENCY
-     │
-     └───────┬───────┘
-             ▼
-      Hybrid Risk Scoring
-             │
-             ▼
-      Final Fraud Decision
-             │
-             ▼
-      SHAP Explanation
-             │
-             ▼
-        API Response
-```
-
-The hybrid approach allows the system to combine **learned fraud patterns** with **business-defined fraud rules**.
-
----
-
-# 🧠 Explainability Output
-
-For every evaluated transaction, Fraud-Shield can store and return feature-level explanations.
 
 Example:
 
@@ -311,145 +316,231 @@ Example:
 }
 ```
 
-This provides transparency into the decision-making process of the fraud detection system.
+---
+
+# ⚙️ Hybrid Fraud Detection Engine
+
+Fraud-Shield combines machine learning and deterministic business rules.
+
+```text
+Transaction
+     │
+     ▼
+Feature Engineering
+     │
+     ├─────────────────┐
+     ▼                 ▼
+XGBoost Model      Rule Engine
+     │                 │
+     │                 ├── NEW_RECIPIENT
+     │                 ├── INTERNATIONAL_TRANSFER
+     │                 ├── NEW_DEVICE
+     │                 └── HIGH_FREQUENCY
+     │
+     └────────┬────────┘
+              ▼
+       Hybrid Risk Scoring
+              │
+              ▼
+       Final Fraud Decision
+              │
+              ▼
+       SHAP Explanation
+              │
+              ▼
+       Database Persistence
+              │
+              ▼
+          API Response
+              │
+              ▼
+        React Frontend
+```
+
+The hybrid approach combines learned fraud patterns with business-defined fraud rules.
 
 ---
 
-# 🔌 Backend API
+# 🧠 Risk Classification
 
-Fraud-Shield uses a **FastAPI-based REST backend**.
-
-## Current API Routes
+The backend uses configured risk thresholds to classify transactions.
 
 ```text
-POST /api/v1/auth/login
-
-GET  /api/v1/health
-
-GET  /api/v1/analytics/summary
-
-GET  /api/v1/analytics
-
-GET  /api/v1/transactions
-
-GET  /api/v1/transactions/{id}
-
-POST /api/v1/transactions/analyze
-
-GET  /health
+Low Risk
+Medium Risk
+High Risk
+Critical Risk
 ```
 
-The API is documented automatically through FastAPI.
+The final decision incorporates:
 
-### Swagger
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-### OpenAPI
-
-```text
-http://127.0.0.1:8000/openapi.json
-```
+* ML fraud probability
+* Rule-based risk signals
+* Hybrid scoring
+* Configured risk thresholds
 
 ---
 
-# ❤️ Health Check
+# 📜 Transaction History
 
-## Endpoint
+Transaction history is connected to the backend.
+
+### Endpoints
 
 ```text
-GET /api/v1/health
+GET /api/v1/transactions
+GET /api/v1/transactions/{id}
 ```
 
-Example:
+The React History page consumes these endpoints to display persisted transactions.
 
-```bash
-curl http://127.0.0.1:8000/api/v1/health
-```
+Historical transaction records include fraud evaluation information such as:
 
-Response:
-
-```json
-{
-  "status": "healthy",
-  "service": "Fraud-Shield API"
-}
-```
+* Risk score
+* Risk level
+* Verdict
+* Confidence
+* Recommended action
+* Evaluation timestamp
 
 ---
 
-# 📊 Analytics API
+# 📈 Risk Analytics
 
-The backend now exposes persisted transaction analytics.
+The React Analytics page consumes database-backed analytics APIs.
 
-## Summary
+### Endpoints
 
 ```text
 GET /api/v1/analytics/summary
+GET /api/v1/analytics
 ```
 
-The summary endpoint calculates dashboard-level KPIs from stored transactions.
+Supported metrics include:
 
-Metrics include:
+* Total transactions
+* Fraud transactions
+* Suspicious transactions
+* Safe transactions
+* Average risk score
+* Average prediction confidence
+* Total transaction amount
+* High-risk transactions
+* Critical-risk transactions
+* Risk distribution
+* Transaction activity
+* Fraud/Genuine analysis
+
+The analytics are calculated from persisted transaction records rather than static frontend data.
+
+---
+
+# 🚨 Navbar Alerts
+
+The navbar alert feed is connected to the backend.
+
+### Endpoint
 
 ```text
-Total Transactions
-Fraud Transactions
-Suspicious Transactions
-Safe Transactions
-Average Risk Score
-Average Confidence
-Total Transaction Amount
-High-Risk Transactions
-Critical-Risk Transactions
+GET /api/v1/alerts
 ```
 
-This provides the backend foundation required for connecting the React dashboard to real database-backed analytics.
+The frontend requests alerts when the alert dropdown is opened.
+
+The UI supports:
+
+* Alert count
+* Alert title
+* Alert details
+* Severity/risk level
+* Alert timestamp
+* Loading state
+* Error state
+* Empty state
+
+If no alerts exist, the UI displays:
+
+```text
+No active alerts.
+```
 
 ---
 
 # 🗄️ Database
 
-Fraud-Shield uses **PostgreSQL** for persistent storage of fraud-related information.
+Fraud-Shield uses **PostgreSQL** for persistent storage.
 
-The backend uses **SQLAlchemy ORM** for database interaction.
+SQLAlchemy is used as the ORM.
 
-### Stored Information
-
-* User accounts
-* Transaction details
-* Fraud evaluations
-* Risk scores
-* Risk levels
-* Fraud verdicts
-* Feature attributions
-* Triggered rules
-* Model version information
-* Evaluation timestamps
-
-### Database Relationships
+Current database tables include:
 
 ```text
-Users
-  │
-  └── Transactions
-          │
-          └── Fraud Evaluations
-                  │
-                  └── Feature Attributions
+users
+transactions
+fraud_evaluations
+feature_attributions
 ```
 
-Foreign keys and relationships are used to maintain data consistency between entities.
+### User Data
+
+The `users` table stores:
+
+* User ID
+* Email
+* Password hash
+* First name
+* Last name
+* Role
+* Created timestamp
+* Notification settings
+* Security settings
+
+### Transaction Data
+
+Transactions store:
+
+* Transaction ID
+* Amount
+* Currency
+* Transaction type
+* Merchant information
+* Location
+* IP address
+* Device type
+* Transfer indicators
+* Recipient indicators
+* Frequency
+* Risk score
+* Risk level
+* Verdict
+* Confidence
+* Recommended action
+* User relationship
+* Created timestamp
+
+### Fraud Evaluation Data
+
+Fraud evaluations store:
+
+* Transaction ID
+* Risk score
+* Risk level
+* Verdict
+* Confidence
+* Recommended action
+* Model version
+
+### Feature Attribution Data
+
+Feature-level explainability information is persisted through feature attribution records.
 
 ---
 
 # 💾 Database Persistence
 
-Fraud evaluation results are persisted after transaction analysis.
+Fraud analysis results are persisted after transaction evaluation.
 
-For example:
+Example:
 
 ```text
 Transaction
@@ -467,374 +558,71 @@ TXN-DB-001
                      └── amount
 ```
 
-This allows historical fraud analysis and dashboard analytics.
+This allows:
+
+* Historical analysis
+* Analytics calculations
+* Transaction history
+* Persistent fraud evaluations
+* Explainability storage
 
 ---
 
-# 🛡️ Security
+# 🔌 Backend API
 
-The backend now includes basic authentication and security mechanisms:
+Fraud-Shield uses a FastAPI REST backend.
 
-* Password hashing using `pwdlib`
-* JWT authentication using `PyJWT`
-* Email validation using Pydantic `EmailStr`
-* Environment-based configuration
-* Database credentials through environment variables
-* Parameterized database queries
-* Foreign key constraints
-* Sensitive information excluded from source control
-* `.env` files excluded through `.gitignore`
-
-### JWT Configuration
-
-JWT configuration is maintained in:
+## Current API Routes
 
 ```text
-backend/app/core/config.py
+POST  /api/v1/auth/register
+POST  /api/v1/auth/login
+
+GET   /api/v1/auth/settings
+PATCH /api/v1/auth/settings
+GET   /api/v1/auth/sessions
+
+GET   /api/v1/health
+GET   /health
+
+GET   /api/v1/alerts
+
+GET   /api/v1/analytics/summary
+GET   /api/v1/analytics
+
+GET   /api/v1/transactions
+GET   /api/v1/transactions/{id}
+POST  /api/v1/transactions/analyze
 ```
 
-Relevant settings include:
+The currently implemented routes were verified through the running OpenAPI specification.
+
+---
+
+# ❤️ Health Check
+
+## Backend Health
 
 ```text
-SECRET_KEY
-ALGORITHM
-ACCESS_TOKEN_EXPIRE_MINUTES
+GET /health
 ```
 
-For production deployment, `SECRET_KEY` must be replaced with a secure environment variable.
+Response:
 
----
+```json
+{
+  "status": "healthy",
+  "service": "fraud-shield-backend"
+}
+```
 
-# 📊 Fraud Result
-
-The Fraud Result interface is designed to display the complete evaluation of a transaction.
-
-It includes:
-
-* Fraud / Genuine verdict
-* Risk score
-* Risk level
-* Prediction confidence
-* Risk indicators
-* Triggered rules
-* Transaction summary
-* Explainable AI factors
-* Recommended action
-
----
-
-# 📜 Transaction History
-
-The backend provides transaction history endpoints:
+## API Health
 
 ```text
-GET /api/v1/transactions
-GET /api/v1/transactions/{id}
+GET /api/v1/health
 ```
 
-These endpoints support retrieving previously evaluated transactions and their associated fraud evaluation information.
-
----
-
-# 📈 Risk Analytics
-
-The analytics dashboard is supported by backend APIs that calculate:
-
-* Fraud percentage
-* Average risk score
-* High-risk transactions
-* Critical-risk transactions
-* Transaction volume
-* Fraud vs Genuine analysis
-* Average prediction confidence
-* Total transaction amount
-
-The React frontend can consume these APIs during the integration phase.
-
----
-
-# 👤 Profile & Settings
-
-The application UI is intended to support:
-
-* User information
-* Profile management
-* Password settings
-* Notification settings
-* Security settings
-* Theme settings
-* Logout
-
-Backend authentication is currently implemented for login. Full frontend token management and additional account-management APIs remain future integration work.
-
----
-
-# 🛠️ Tech Stack
-
-| Layer               | Technology                          |
-| ------------------- | ----------------------------------- |
-| Frontend            | React.js                            |
-| Build Tool          | Vite                                |
-| Language            | JavaScript / JSX                    |
-| Styling             | CSS / Tailwind CSS where applicable |
-| Routing             | React Router                        |
-| Charts              | Recharts                            |
-| Backend             | Python                              |
-| API Framework       | FastAPI                             |
-| ORM                 | SQLAlchemy                          |
-| Database            | PostgreSQL                          |
-| Validation          | Pydantic                            |
-| Configuration       | Pydantic Settings                   |
-| Authentication      | JWT / PyJWT                         |
-| Password Hashing    | pwdlib / Argon2                     |
-| Machine Learning    | XGBoost                             |
-| Explainable AI      | SHAP                                |
-| ML Processing       | Python / scikit-learn               |
-| Model Serialization | Joblib / Pickle                     |
-| ASGI Server         | Uvicorn                             |
-| Database Migrations | Alembic                             |
-| Version Control     | Git                                 |
-| Collaboration       | GitHub                              |
-
----
-
-# 📦 Backend Dependencies
-
-Backend Python dependencies are documented in:
-
-```text
-backend/requirements.txt
-```
-
-This includes the packages required for:
-
-* FastAPI
-* Uvicorn
-* SQLAlchemy
-* Pydantic
-* Pydantic Settings
-* PostgreSQL connectivity
-* XGBoost
-* SHAP
-* Scikit-learn
-* Joblib
-* JWT authentication
-* Password hashing
-* Email validation
-* Environment configuration
-
-The virtual environment itself is local development infrastructure and should not be committed to Git.
-
----
-
-# 📁 Project Structure
-
-```text
-Fraud-Shield/
-│
-├── backend/
-│   │
-│   ├── app/
-│   │   ├── api/
-│   │   │   └── v1/
-│   │   │       ├── __init__.py
-│   │   │       └── router.py
-│   │   │
-│   │   ├── core/
-│   │   │   ├── config.py
-│   │   │   └── database.py
-│   │   │
-│   │   ├── models/
-│   │   │   ├── models.py
-│   │   │   └── transaction.py
-│   │   │
-│   │   ├── schemas/
-│   │   │   ├── transaction.py
-│   │   │   └── auth.py
-│   │   │
-│   │   ├── services/
-│   │   │   ├── ml_service.py
-│   │   │   └── rule_engine.py
-│   │   │
-│   │   ├── utils/
-│   │   │   └── hybrid_scoring.py
-│   │   │
-│   │   ├── main.py
-│   │   └── alembic.ini
-│   │
-│   ├── ml/
-│   │   ├── feature_engineering.py
-│   │   ├── model_loader.py
-│   │   ├── predictor.py
-│   │   ├── train_model.py
-│   │   │
-│   │   └── artifacts/
-│   │       ├── feature_engineer.pkl
-│   │       ├── model_metadata.json
-│   │       ├── shap_explainer.pkl
-│   │       └── xgboost_model.pkl
-│   │
-│   ├── requirements.txt
-│   └── README.md
-│
-├── database/
-│   ├── Audit_Logs.sql
-│   ├── Explanations.sql
-│   ├── fraud_result.sql
-│   ├── modelversions.sql
-│   ├── risk_indicators.sql
-│   ├── Schema.sql
-│   ├── Transaction_History.sql
-│   ├── transactions.sql
-│   └── README.md
-│
-├── docs/
-│   └── README.md
-│
-├── explainable-ai/
-│   └── README.md
-│
-├── frontend/
-│   └── fraud-shield-react-frontend/
-│       ├── src/
-│       │   ├── components/
-│       │   ├── pages/
-│       │   ├── data/
-│       │   ├── App.jsx
-│       │   ├── main.jsx
-│       │   └── index.css
-│       │
-│       ├── index.html
-│       ├── package.json
-│       ├── package-lock.json
-│       └── vite.config.ts
-│
-├── .gitignore
-├── LICENSE
-└── README.md
-```
-
----
-
-# 🔄 End-to-End System Flow
-
-```text
-User
- │
- ▼
-React Frontend
- │
- │ Login / Transaction Data
- ▼
-FastAPI Backend
- │
- ├─────────────────────┐
- ▼                     ▼
-Authentication       Fraud Analysis
- │                     │
- ▼               ┌─────┴─────┐
-JWT Token        ▼           ▼
-               ML Engine   Rule Engine
-                  │           │
-                  ▼           ▼
-               XGBoost    Business Rules
-                  │           │
-                  └─────┬─────┘
-                        ▼
-                 Hybrid Scoring
-                        │
-                        ▼
-                 Fraud Evaluation
-                    ┌───┴───┐
-                    ▼       ▼
-                  SHAP   PostgreSQL
-               Explanation Storage
-                    │       │
-                    └───┬───┘
-                        ▼
-                  API Response
-                        │
-                        ▼
-                 React Dashboard
-```
-
----
-
-# 🧪 Backend Testing & Verification
-
-The backend has been tested locally using FastAPI, Python and `curl`.
-
-## 1. Authentication Schema Test
-
-```bash
-python3 - <<'PY'
-from app.schemas.auth import LoginRequest, LoginResponse
-
-print("Auth schemas: OK")
-PY
-```
-
-Result:
-
-```text
-Auth schemas: OK
-```
-
----
-
-## 2. Authentication Compilation Test
-
-```bash
-python3 -m py_compile app/schemas/auth.py
-```
-
-Result:
-
-```text
-Successful compilation
-```
-
----
-
-## 3. Login API Test
-
-A valid login was tested:
-
-```text
-POST /api/v1/auth/login
-```
-
-The API successfully returned:
-
-```text
-access_token
-token_type
-user_id
-email
-role
-```
-
----
-
-## 4. Invalid Login Test
-
-An incorrect password was tested.
-
-The API correctly returned:
-
-```http
-401 Unauthorized
-```
-
----
-
-## 5. Health Check Test
-
-```bash
-curl -s http://127.0.0.1:8000/api/v1/health
-```
-
-Result:
+Response:
 
 ```json
 {
@@ -843,84 +631,302 @@ Result:
 }
 ```
 
----
-
-## 6. OpenAPI Route Verification
-
-The running backend currently exposes:
-
-```text
-/api/v1/auth/login
-/api/v1/health
-/api/v1/analytics/summary
-/api/v1/analytics
-/api/v1/transactions/{id}
-/api/v1/transactions
-/api/v1/transactions/analyze
-/health
-```
-
-The routes were verified through:
-
-```text
-GET /openapi.json
-```
+Both endpoints have been verified locally.
 
 ---
 
-## 7. High-Risk Transaction Test
+# 📖 API Documentation
 
-A transaction with:
+FastAPI automatically provides:
 
-* High amount
-* International transfer
-* New recipient
-* New device
-
-was tested.
-
-Example result:
+### Swagger
 
 ```text
-Risk Score: 83
-Risk Level: Critical
-Verdict: Fraud
-Confidence: 0.9964
+http://127.0.0.1:8000/docs
 ```
 
-Triggered rules included:
+### OpenAPI
 
 ```text
-NEW_RECIPIENT
-INTERNATIONAL_TRANSFER
-NEW_DEVICE
+http://127.0.0.1:8000/openapi.json
 ```
 
-SHAP also identified major risk-contributing features.
+The OpenAPI specification was used to verify the active backend routes.
 
 ---
 
-## 8. Low-Risk Transaction Test
+# 🔐 Security
 
-A normal transaction was also tested.
+The backend includes:
 
-Example result:
+* Password hashing
+* JWT authentication
+* Email validation
+* Environment-based configuration
+* PostgreSQL credentials through environment variables
+* SQLAlchemy parameterized database operations
+* Foreign key constraints
+* `.env` files excluded from Git
+* Production `SECRET_KEY` configuration through environment variables
+
+JWT configuration is maintained in:
 
 ```text
-Risk Score: 5
-Risk Level: Low
-Verdict: Safe
-Confidence: 0.0234
+backend/app/core/config.py
 ```
+
+Important production variables include:
+
+```text
+SECRET_KEY
+DATABASE_URL
+APP_ENV
+```
+
+A secure production secret must be supplied during deployment.
 
 ---
 
-# 🔧 Running the Backend
+# 🌐 Frontend API Configuration
 
-Navigate to the backend:
+The frontend uses a centralized API configuration:
+
+```text
+frontend/fraud-shield-react-frontend (2)/src/config/api.js
+```
+
+The backend base URL is configured through:
+
+```text
+VITE_API_BASE_URL
+```
+
+Example local configuration:
+
+```text
+VITE_API_BASE_URL=http://127.0.0.1:8000
+VITE_API_TIMEOUT_MS=30000
+```
+
+API endpoint paths are centralized in:
+
+```text
+src/config/api.js
+```
+
+The frontend does not hard-code backend URLs across individual components.
+
+---
+
+# 🔗 Frontend-to-Backend Integration
+
+The frontend integration phase has been completed for the implemented backend APIs.
+
+Current integration includes:
+
+```text
+React Frontend
+      │
+      ▼
+HTTP Client
+      │
+      ▼
+FastAPI Backend
+      │
+      ├── Authentication
+      ├── Profile Settings
+      ├── Transactions
+      ├── Fraud Analysis
+      ├── Transaction History
+      ├── Analytics
+      └── Alerts
+      │
+      ▼
+PostgreSQL / ML / XAI
+```
+
+Integrated frontend services include:
+
+```text
+src/services/httpClient.js
+src/services/fraudApi.js
+src/context/AuthContext.jsx
+```
+
+The frontend uses real API responses and real error states instead of fabricated backend data for the implemented flows.
+
+---
+
+# 🧪 Local Testing & Verification
+
+The integrated application has been tested locally.
+
+## 1. Database Connection
+
+Verified successfully:
+
+```text
+DATABASE: 1
+```
+
+This confirms that SQLAlchemy can connect to PostgreSQL and execute a query.
+
+---
+
+## 2. Backend Health
+
+Verified:
+
+```text
+GET /health
+GET /api/v1/health
+```
+
+Both returned HTTP 200 responses.
+
+---
+
+## 3. User Registration
+
+Verified:
+
+```text
+POST /api/v1/auth/register
+```
+
+A test user was successfully created and the API returned:
+
+```text
+HTTP 201 Created
+```
+
+with:
+
+* Access token
+* Token type
+* User ID
+* Email
+* Role
+
+---
+
+## 4. Login
+
+Verified:
+
+```text
+POST /api/v1/auth/login
+```
+
+Successful login returned a valid JWT access token.
+
+---
+
+## 5. Authenticated Settings
+
+Verified using the returned JWT:
+
+```text
+GET /api/v1/auth/settings
+```
+
+The API returned the user's persisted settings.
+
+---
+
+## 6. Sessions
+
+Verified:
+
+```text
+GET /api/v1/auth/sessions
+```
+
+The API successfully returned the current authenticated session.
+
+---
+
+## 7. Alerts
+
+Verified:
+
+```text
+GET /api/v1/alerts
+```
+
+The endpoint correctly returned:
+
+```json
+{
+  "items": [],
+  "total": 0
+}
+```
+
+when no active alerts existed.
+
+---
+
+## 8. Frontend Production Build
+
+The production frontend build was successfully generated using:
 
 ```bash
-cd backend
+npm run build
+```
+
+Build result:
+
+```text
+✓ 2438 modules transformed.
+✓ built successfully
+```
+
+The generated production artifact:
+
+```text
+frontend/fraud-shield-react-frontend (2)/dist/index.html
+```
+
+was successfully created.
+
+---
+
+# 🏗️ Frontend Build
+
+Frontend technology:
+
+```text
+React
+Vite
+Tailwind CSS
+React Router
+Recharts
+Lucide React
+```
+
+Build command:
+
+```bash
+cd frontend/"fraud-shield-react-frontend (2)"
+npm install
+npm run build
+```
+
+Production output is generated under:
+
+```text
+dist/
+```
+
+---
+
+# 🔧 Running the Backend Locally
+
+Navigate to the project:
+
+```bash
+cd ~/Fraud-Shield/backend
 ```
 
 Activate the virtual environment:
@@ -935,13 +941,13 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Start the FastAPI server:
+Start FastAPI:
 
 ```bash
-python -m uvicorn app.main:app --reload
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-The backend will normally run at:
+Backend:
 
 ```text
 http://127.0.0.1:8000
@@ -961,17 +967,56 @@ http://127.0.0.1:8000/openapi.json
 
 ---
 
+# 🔧 Running the Frontend Locally
+
+Navigate to:
+
+```bash
+cd ~/Fraud-Shield/frontend/"fraud-shield-react-frontend (2)"
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Configure:
+
+```text
+.env.local
+```
+
+Example:
+
+```text
+VITE_API_BASE_URL=http://127.0.0.1:8000
+VITE_API_TIMEOUT_MS=30000
+```
+
+Start the frontend:
+
+```bash
+npm run dev
+```
+
+The frontend will normally be available at:
+
+```text
+http://localhost:5173
+```
+
+---
+
 # ⚠️ Port Already in Use
 
-If the following error appears:
+If FastAPI reports:
 
 ```text
 ERROR: [Errno 48] Address already in use
 ```
 
-another process may already be using port `8000`.
-
-Verify the existing server:
+check whether the existing backend is already running:
 
 ```bash
 curl http://127.0.0.1:8000/api/v1/health
@@ -986,129 +1031,283 @@ If it returns:
 }
 ```
 
-the backend is already running.
+the backend is already active.
 
 ---
 
-# 🔗 Frontend Integration Status
-
-The backend API is ready to be consumed by the React frontend.
-
-The primary fraud-analysis integration point is:
+# 📁 Project Structure
 
 ```text
-POST /api/v1/transactions/analyze
+Fraud-Shield/
+│
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── v1/
+│   │   │       ├── auth_utils.py
+│   │   │       └── router.py
+│   │   │
+│   │   ├── core/
+│   │   │   ├── config.py
+│   │   │   └── database.py
+│   │   │
+│   │   ├── models/
+│   │   │   ├── models.py
+│   │   │   └── transaction.py
+│   │   │
+│   │   ├── schemas/
+│   │   │   ├── auth.py
+│   │   │   └── transaction.py
+│   │   │
+│   │   ├── services/
+│   │   │   ├── ml_service.py
+│   │   │   └── rule_engine.py
+│   │   │
+│   │   ├── utils/
+│   │   │   └── hybrid_scoring.py
+│   │   │
+│   │   └── main.py
+│   │
+│   ├── ml/
+│   │   ├── feature_engineering.py
+│   │   ├── model_loader.py
+│   │   ├── predictor.py
+│   │   ├── train_model.py
+│   │   └── artifacts/
+│   │
+│   ├── requirements.txt
+│   └── README.md
+│
+├── database/
+├── docs/
+├── explainable-ai/
+│
+├── frontend/
+│   └── fraud-shield-react-frontend (2)/
+│       ├── src/
+│       ├── index.html
+│       ├── package.json
+│       ├── package-lock.json
+│       ├── vite.config.ts
+│       └── .env.example
+│
+├── .gitignore
+├── LICENSE
+└── README.md
 ```
-
-Authentication integration point:
-
-```text
-POST /api/v1/auth/login
-```
-
-### Current Status
-
-```text
-Backend Authentication
-        ↓
-        ✅ Implemented
-
-JWT Generation
-        ↓
-        ✅ Implemented
-
-React Login → Backend
-        ↓
-        ⏳ Pending integration
-
-JWT Storage in React
-        ↓
-        ⏳ Pending integration
-
-React Transaction Form → Backend
-        ↓
-        ⏳ Pending integration
-
-Real Fraud Result UI
-        ↓
-        ⏳ Pending integration
-
-Dashboard Analytics → Backend
-        ↓
-        ⏳ Pending integration
-
-Transaction History → Backend
-        ↓
-        ⏳ Pending integration
-```
-
-The frontend integration work focuses on connecting the existing React UI to the completed backend APIs.
 
 ---
 
-# 🧩 Design Approach
+# 🔄 End-to-End System Flow
 
-Fraud-Shield follows a hybrid fraud detection approach.
-
-### Machine Learning
-
-Useful for identifying:
-
-* Complex fraud patterns
-* Non-linear relationships
-* Historical transaction patterns
-* Multiple interacting risk factors
-
-### Business Rules
-
-Useful for:
-
-* Known fraud scenarios
-* Explicit business policies
-* Immediate risk conditions
-* Controllable fraud thresholds
-
-### Explainable AI
-
-Useful for:
-
-* Understanding model decisions
-* Identifying major risk factors
-* Supporting manual review
-* Improving transparency and trust
-
-### Authentication
-
-Provides:
-
-* Secure login
-* Password hashing
-* JWT-based session authentication
-* User identity and role information
-
-### Hybrid Scoring
-
-Combines ML and business signals into a practical final risk assessment.
+```text
+User
+ │
+ ▼
+React Frontend
+ │
+ ├── Signup
+ ├── Login
+ ├── Profile
+ ├── Transaction Check
+ ├── History
+ ├── Analytics
+ └── Alerts
+ │
+ ▼
+HTTP Client
+ │
+ ▼
+FastAPI Backend
+ │
+ ├───────────────────────┐
+ ▼                       ▼
+Authentication        Fraud Analysis
+ │                       │
+ ▼                 ┌─────┴─────┐
+JWT                ▼           ▼
+                  ML Engine   Rule Engine
+                     │           │
+                     ▼           ▼
+                  XGBoost    Business Rules
+                     │           │
+                     └─────┬─────┘
+                           ▼
+                    Hybrid Scoring
+                           │
+                           ▼
+                    Fraud Evaluation
+                       ┌───┴───┐
+                       ▼       ▼
+                     SHAP   PostgreSQL
+                  Explanation Storage
+                       │       │
+                       └───┬───┘
+                           ▼
+                      API Response
+                           │
+                           ▼
+                    React Dashboard
+```
 
 ---
 
-# 🎯 Business Value
+# 🛠️ Tech Stack
 
-The backend is designed around a real-world financial fraud detection workflow rather than simply producing a binary ML prediction.
+| Layer               | Technology         |
+| ------------------- | ------------------ |
+| Frontend            | React.js           |
+| Build Tool          | Vite               |
+| Language            | JavaScript / JSX   |
+| Styling             | Tailwind CSS / CSS |
+| Routing             | React Router       |
+| Charts              | Recharts           |
+| Icons               | Lucide React       |
+| Backend             | Python             |
+| API Framework       | FastAPI            |
+| ORM                 | SQLAlchemy         |
+| Database            | PostgreSQL         |
+| Validation          | Pydantic           |
+| Configuration       | Pydantic Settings  |
+| Authentication      | JWT / PyJWT        |
+| Password Hashing    | pwdlib / Argon2    |
+| Machine Learning    | XGBoost            |
+| Explainable AI      | SHAP               |
+| ML Processing       | scikit-learn       |
+| Model Serialization | Joblib / Pickle    |
+| ASGI Server         | Uvicorn            |
+| Database Migrations | Alembic            |
+| Version Control     | Git                |
+| Collaboration       | GitHub             |
 
-The system helps financial organizations:
+---
 
-* Detect suspicious transactions
-* Prioritize high-risk transactions
-* Reduce unnecessary manual investigation
-* Understand why transactions are flagged
-* Apply business-specific fraud rules
-* Provide explainable decisions to analysts
-* Support automated approval or blocking decisions
-* Secure access through authenticated user accounts
-* Provide analytics from persisted transaction data
+# 📦 Backend Dependencies
 
-The combination of **ML + business rules + explainability + authentication + persistent analytics** makes the system more suitable for practical fraud monitoring.
+Backend dependencies are maintained in:
+
+```text
+backend/requirements.txt
+```
+
+Important dependencies include:
+
+```text
+FastAPI
+Uvicorn
+SQLAlchemy
+Pydantic
+Pydantic Settings
+psycopg2-binary
+PyJWT
+pwdlib
+Argon2
+email-validator
+NumPy
+Pandas
+scikit-learn
+Joblib
+SHAP
+XGBoost
+```
+
+The virtual environment is local development infrastructure and is not committed to Git.
+
+---
+
+# 🔒 Environment Configuration
+
+## Frontend
+
+Frontend environment variables are configured through:
+
+```text
+.env.local
+```
+
+Example:
+
+```text
+VITE_API_BASE_URL=http://127.0.0.1:8000
+VITE_API_TIMEOUT_MS=30000
+```
+
+Production should use the deployed backend URL instead of localhost.
+
+---
+
+## Backend
+
+Production configuration should be supplied through environment variables.
+
+Important variables:
+
+```text
+APP_ENV=production
+DATABASE_URL=<production-postgresql-url>
+SECRET_KEY=<strong-random-production-secret>
+```
+
+Never commit production secrets to GitHub.
+
+---
+
+# 🚀 Production Deployment
+
+Production deployment is the next phase.
+
+### Pending deployment work
+
+* [ ] Choose production hosting provider
+* [ ] Configure FastAPI production service
+* [ ] Configure production PostgreSQL
+* [ ] Configure production `DATABASE_URL`
+* [ ] Generate secure production `SECRET_KEY`
+* [ ] Configure production CORS
+* [ ] Configure production frontend API URL
+* [ ] Verify ML model artifacts are available in production
+* [ ] Run production database migrations
+* [ ] Deploy backend
+* [ ] Deploy frontend
+* [ ] Run production smoke tests
+* [ ] Verify browser Console
+* [ ] Verify Network tab for unexpected `401`, `404`, or `500`
+* [ ] Verify production authentication
+* [ ] Verify transaction analysis
+* [ ] Verify history
+* [ ] Verify analytics
+* [ ] Verify alerts
+* [ ] Verify settings persistence
+* [ ] Run final production build
+
+---
+
+# 🧪 Integration Verification Checklist
+
+The following local integration checks have been completed:
+
+* [x] Backend starts successfully
+* [x] PostgreSQL connection verified
+* [x] Backend health endpoint verified
+* [x] API health endpoint verified
+* [x] OpenAPI routes verified
+* [x] User registration verified
+* [x] User login verified
+* [x] JWT token generation verified
+* [x] Authenticated settings endpoint verified
+* [x] Sessions endpoint verified
+* [x] Alerts endpoint verified
+* [x] Frontend API configuration verified
+* [x] Frontend authentication flow integrated
+* [x] Profile/settings API integration implemented
+* [x] Transaction analysis API integration implemented
+* [x] Transaction history integration implemented
+* [x] Analytics integration implemented
+* [x] Navbar alerts integration implemented
+* [x] Real API error handling implemented
+* [x] Frontend production build verified
+* [x] Git changes committed
+* [x] Changes pushed to GitHub
 
 ---
 
@@ -1135,72 +1334,105 @@ The combination of **ML + business rules + explainability + authentication + per
 * [x] Risk factor explanations
 * [x] Triggered rule explanations
 * [x] Model version tracking
-* [x] PostgreSQL/SQLAlchemy integration
+* [x] PostgreSQL integration
+* [x] SQLAlchemy ORM
 * [x] Fraud evaluation persistence
+* [x] Feature attribution persistence
 * [x] Database-backed analytics
 * [x] User model
 * [x] Password hashing
+* [x] User registration
 * [x] JWT login authentication
 * [x] Authentication request/response schemas
-* [x] Invalid credential handling
-* [x] Backend dependency requirements file
-* [x] Local API testing
-* [x] OpenAPI route verification
-* [x] Trained ML model integration through `FraudPredictor`
+* [x] Authenticated settings API
+* [x] Settings persistence
+* [x] Sessions API
+* [x] Alerts API
+* [x] React authentication integration
+* [x] Frontend API client
+* [x] Authenticated frontend requests
+* [x] Transaction Check integration
+* [x] Fraud Result integration
+* [x] Dashboard analytics integration
+* [x] Transaction History integration
+* [x] Profile & Settings integration
+* [x] Navbar Alerts integration
+* [x] Local PostgreSQL verification
+* [x] Local API verification
+* [x] Frontend production build
+* [x] Git commit
+* [x] GitHub push
 
-## Pending Integration
+---
 
-* [ ] Connect React login form to `/api/v1/auth/login`
-* [ ] Store/manage JWT token in the frontend
-* [ ] Add authenticated frontend requests
-* [ ] Connect React transaction form to `/api/v1/transactions/analyze`
-* [ ] Connect Fraud Result UI with real API response
-* [ ] Connect dashboard analytics UI to backend analytics APIs
-* [ ] Connect transaction history UI to backend APIs
+# ⏳ Remaining Work
+
+## Production Deployment
+
+* [ ] Production hosting configuration
+* [ ] Production PostgreSQL database
+* [ ] Production environment variables
+* [ ] Secure production JWT secret
+* [ ] Production CORS configuration
+* [ ] ML artifact deployment verification
+* [ ] Database migrations
+* [ ] Backend deployment
+* [ ] Frontend deployment
+* [ ] Production smoke testing
+* [ ] Production monitoring/logging
 
 ## Future Enhancements
 
-* [ ] User registration API
 * [ ] Refresh-token flow
 * [ ] Role-based access control
 * [ ] Password reset
-* [ ] Production database migrations
-* [ ] Automated backend tests
-* [ ] API error handling and structured logging
+* [ ] Automated backend test suite
+* [ ] Structured production logging
 * [ ] Real-time transaction streaming
 * [ ] Advanced anomaly detection
 * [ ] Model retraining pipeline
 * [ ] Continuous model monitoring
-* [ ] Production deployment
-* [ ] Cloud database integration
-* [ ] Advanced fraud analytics
-* [ ] Alert and notification system
+* [ ] Advanced notification delivery
+* [ ] Production alerting infrastructure
 
 ---
 
 # 🏁 Project Status
 
-Fraud-Shield has progressed from a frontend prototype into a functional fraud-detection backend platform with:
+Fraud-Shield has progressed from a frontend prototype into a **functional full-stack fraud detection platform**.
 
-* ✅ React frontend foundation
-* ✅ FastAPI backend
-* ✅ PostgreSQL database integration
-* ✅ SQLAlchemy ORM
-* ✅ XGBoost fraud detection
-* ✅ SHAP-based Explainable AI
-* ✅ Rule-based fraud detection
-* ✅ Hybrid risk scoring
-* ✅ Fraud evaluation persistence
-* ✅ Feature-level risk explanations
-* ✅ Transaction analysis API
-* ✅ Transaction history APIs
-* ✅ Analytics APIs
-* ✅ JWT-based backend authentication
-* ✅ Password hashing
-* ✅ Authentication schemas
-* ✅ Backend dependency management
-* ✅ Local API and authentication testing
-* ✅ Trained ML model integration
+The current system includes:
 
-The backend is currently ready for the next phase: **frontend-to-backend integration**, including JWT handling, real transaction analysis, dashboard analytics, and transaction history integration.
+```text
+React Frontend
+      +
+FastAPI Backend
+      +
+PostgreSQL
+      +
+JWT Authentication
+      +
+XGBoost
+      +
+SHAP Explainability
+      +
+Rule Engine
+      +
+Hybrid Risk Scoring
+      +
+Transaction Persistence
+      +
+Analytics
+      +
+Transaction History
+      +
+Profile & Security Settings
+      +
+Navbar Alerts
+```
 
+The **frontend-to-backend integration phase is complete and has been verified locally**.
+
+The project is now ready for the next phase:
+
+> **Production deployment configuration → Cloud deployment → Production smoke testing → Final release.**
